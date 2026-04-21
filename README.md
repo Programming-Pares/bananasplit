@@ -1,6 +1,6 @@
 # BananaSplit
 
-![Screenshot](/assets/initial_ui.png)
+![Screenshot](/assets/screenshot.png)
 
 BananaSplit is a local-first web app for splitting group expenses, tracking balances, and recording settlements.
 
