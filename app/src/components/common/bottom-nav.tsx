@@ -54,6 +54,7 @@ export function BottomNav() {
                 type="button"
               >
                 <span className="flex size-15 items-center justify-center rounded-full border-2 border-(--color-banana-500) bg-(--color-banana-950) text-(--color-banana-50) ring-4 ring-[rgba(255,249,231,0.96)] outline-2 outline-(--color-banana-500)">
+                  <Plus className="size-7" />
                 </span>
               </button>
             </div>
