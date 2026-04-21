@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils'
 
 type GroupCardProps = {
   id: string
+  isActive: boolean
+  isDone: boolean
   memberCount: number
   name: string
   netLabel: string
@@ -17,6 +19,8 @@ type GroupCardProps = {
 
 export function GroupCard({
   id,
+  isActive,
+  isDone,
   memberCount,
   name,
   netLabel,
@@ -35,6 +39,9 @@ export function GroupCard({
                 <Badge className="rounded-full bg-secondary px-2.5 text-[10px] text-secondary-foreground">
                   {openBalanceCount} open
                 </Badge>
+                <Badge className="rounded-full bg-secondary px-2.5 text-[10px] text-secondary-foreground">
+                  {isDone ? 'Done' : isActive ? 'Active' : 'Inactive'}
+                </Badge>
               </div>
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="size-4" />
@@ -42,7 +49,7 @@ export function GroupCard({
               </p>
             </div>
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              Open
+              {isDone ? 'Done' : 'Open'}
               <ArrowUpRight className="size-3.5" />
             </span>
           </div>

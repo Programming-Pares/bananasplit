@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type BreakdownItem = {
+  adjustmentCents?: number
   amount: string
   member: string
+  memberId?: string
 }
 
 type ExpenseBreakdownCardProps = {

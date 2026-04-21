@@ -1,4 +1,4 @@
-import { Bell, Users } from 'lucide-react'
+import { Bell, Search, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { AppLogo } from '@/components/common/app-logo'
@@ -26,11 +26,21 @@ export function DashboardPage() {
         <header className="space-y-4">
           <div className="flex items-start justify-between gap-3">
             <AppLogo compact />
-            <Button asChild className="size-12 rounded-full" size="icon" variant="secondary">
-              <Link to="/notifications" aria-label="Notifications">
-                <Bell className="size-5" />
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild className="size-12 rounded-full" size="icon" variant="secondary">
+                <Link to="/search" aria-label="Search">
+                  <Search className="size-5" />
+                </Link>
+              </Button>
+              <Button asChild className="relative size-12 rounded-full" size="icon" variant="secondary">
+                <Link to="/notifications" aria-label="Notifications">
+                  <Bell className="size-5" />
+                  {data.unreadNotificationCount > 0 ? (
+                    <span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--color-banana-900)]" />
+                  ) : null}
+                </Link>
+              </Button>
+            </div>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Good day, {data.userName}</p>
@@ -47,6 +57,23 @@ export function DashboardPage() {
           owed={data.summary.owed}
           owes={data.summary.owes}
         />
+
+        {data.groups.length === 0 ? (
+          <div className="rounded-[28px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] px-5 py-5 shadow-[0_16px_32px_rgba(245,181,0,0.14)]">
+            <p className="text-sm font-medium text-foreground">Start your first shared money flow</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Create a group, add members, then log the first expense to see balances and notifications come to life.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button asChild className="rounded-2xl">
+                <Link to="/groups/new">Create group</Link>
+              </Button>
+              <Button asChild className="rounded-2xl" variant="secondary">
+                <Link to="/groups">View groups</Link>
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">

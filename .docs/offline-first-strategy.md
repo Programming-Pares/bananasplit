@@ -16,10 +16,20 @@ The current frontend implementation is local-first and uses:
 The app UI now writes to the local database first for these flows:
 - create group
 - add member
+- rename member
+- remove member
+- accept/resend/cancel invite
 - add expense
+- update expense
+- delete expense
 - create settlement
+- create recurring expense template
+- pause/resume recurring expense template
+- create expense from recurring template
 - update local profile
+- update currency
 - sign in / logout state in settings
+- mark notifications read/unread
 
 ## Principles
 
@@ -272,14 +282,48 @@ Current shape:
 - `id: string`
 - `groupId: string`
 - `relatedId: string`
-- `type: 'expense' | 'settlement'`
+- `type: 'expense' | 'settlement' | 'system'`
 - `amountCents: number | null`
 - `message: string`
+- `readAt: number | null`
 - `createdAt: number`
 
 Notes:
 - this is append-only in the current MVP
 - create group and add member do not currently write feed entries
+- read state is local-device state for notifications UI
+- `system` activity now powers group-level audit timeline entries such as:
+  - group created
+  - member added/renamed/removed
+  - invite sent/accepted/resent
+  - group active/done status changes
+  - recurring expense template changes
+
+### `recurringExpenses`
+Reusable local templates for repeated group costs.
+
+Primary key:
+- `id`
+
+Indexes:
+- `groupId`
+- `frequency`
+- `isPaused`
+- `deletedAt`
+- `updatedAt`
+
+Current shape:
+- `id: string`
+- `groupId: string`
+- `title: string`
+- `amountCents: number`
+- `frequency: 'weekly' | 'monthly'`
+- `paidByMemberId: string`
+- `participantMemberIdsJson: string`
+- `isPaused: boolean`
+- `createdAt: number`
+- `updatedAt: number`
+- `deletedAt: number | null`
 
 ### `syncOutbox`
 Queue of pending sync operations to send to the server later.
@@ -416,6 +460,11 @@ Invite by email:
 - creates pending `groupMembers` row
 - appends outbox entries
 
+Member management:
+- current members can be renamed or removed from the group
+- pending invites can be accepted, resent, or canceled
+- these actions also append `system` activity rows for group timeline
+
 ### Add expense
 UI:
 - [quick-action-sheet.tsx](/C:/laragon/www/bananasplit/app/src/features/quick-actions/components/quick-action-sheet.tsx)
@@ -427,6 +476,25 @@ Behavior:
 - appends activity row
 - appends outbox row
 
+### Update expense
+Screen:
+- [expense-details-page.tsx](/C:/laragon/www/bananasplit/app/src/features/expenses/pages/expense-details-page.tsx)
+
+Behavior:
+- updates `expenses`
+- replaces related `expenseShares`
+- updates the related `activity` message/amount row
+- appends outbox update for `expense`
+
+### Delete expense
+Screen:
+- [expense-details-page.tsx](/C:/laragon/www/bananasplit/app/src/features/expenses/pages/expense-details-page.tsx)
+
+Behavior:
+- soft-deletes the `expenses` row via `deletedAt`
+- removes related `activity` rows from local feed/notifications
+- appends outbox delete for `expense`
+
 ### Settle up
 UI:
 - [quick-action-sheet.tsx](/C:/laragon/www/bananasplit/app/src/features/quick-actions/components/quick-action-sheet.tsx)
@@ -436,6 +504,48 @@ Behavior:
 - persists `settlements`
 - appends activity row
 - appends outbox row
+
+### Recurring expenses
+Screen:
+- [group-details-page.tsx](/C:/laragon/www/bananasplit/app/src/features/groups/pages/group-details-page.tsx)
+
+Behavior:
+- creates `recurringExpenses` templates per group
+- stores frequency, payer, participants, and amount locally
+- supports pause/resume state
+- supports `Create now`, which materializes a normal `expenses` row from the template
+- appends `system` activity rows for recurring template changes
+
+### Notifications read state
+Screen:
+- [notifications-page.tsx](/C:/laragon/www/bananasplit/app/src/features/notifications/pages/notifications-page.tsx)
+
+Behavior:
+- toggles `activity.readAt` per notification
+- supports mark-all-read by setting `readAt` on all activity rows
+- read/unread state is currently local to the device and not added to sync outbox
+
+### Search / filters / completed groups
+Screens:
+- [search-page.tsx](/C:/laragon/www/bananasplit/app/src/features/search/pages/search-page.tsx)
+- [groups-page.tsx](/C:/laragon/www/bananasplit/app/src/features/groups-list/pages/groups-page.tsx)
+- [activity-page.tsx](/C:/laragon/www/bananasplit/app/src/features/activity/pages/activity-page.tsx)
+- [notifications-page.tsx](/C:/laragon/www/bananasplit/app/src/features/notifications/pages/notifications-page.tsx)
+
+Behavior:
+- global search is fully local and queries groups, expenses, members, and activity
+- completed/done groups are still stored locally and shown in filtered group views
+- filters/sort are UI-level derivations over local query results
+
+### Group details derived sections
+Screen:
+- [group-details-page.tsx](/C:/laragon/www/bananasplit/app/src/features/groups/pages/group-details-page.tsx)
+
+Derived local sections now include:
+- member balance summary cards
+- settle-up suggestions derived from current pairwise balances
+- group timeline from `activity`
+- recurring expense templates from `recurringExpenses`
 
 ### Settings auth state
 Screen:
@@ -447,6 +557,15 @@ Behavior:
 
 Current auth is local UI/auth-state only, not real OAuth.
 
+### Settings currency
+Screen:
+- [settings-page.tsx](/C:/laragon/www/bananasplit/app/src/features/settings/pages/settings-page.tsx)
+
+Behavior:
+- updates `settings.currency`
+- enqueues outbox update for `settings`
+- currently the only selectable currency in the MVP is `PHP`
+
 ### Local profile
 Screen:
 - [profile-page.tsx](/C:/laragon/www/bananasplit/app/src/features/settings/pages/profile-page.tsx)
@@ -456,6 +575,24 @@ Behavior:
 - local profile mode may update `settings.accountEmail`
 - local profile mode also updates the current user row in `members`
 - Google-linked mode is shown as connected-account UI instead of the editable local form
+
+### Reset local data
+Screen:
+- [settings-page.tsx](/C:/laragon/www/bananasplit/app/src/features/settings/pages/settings-page.tsx)
+
+Behavior:
+- clears all local application tables:
+  - `activity`
+  - `expenseShares`
+  - `expenses`
+  - `groupMembers`
+  - `groups`
+  - `members`
+  - `settings`
+  - `settlements`
+  - `syncOutbox`
+- immediately recreates only the minimum bootstrap records via local initialization
+- does not enqueue a sync outbox event
 
 ## Sync Architecture Recommendation
 

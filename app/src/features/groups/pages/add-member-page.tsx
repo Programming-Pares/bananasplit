@@ -1,5 +1,5 @@
 import { Copy, Mail, Share2, UserPlus, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { MobileShell } from '@/components/common/mobile-shell'
@@ -7,9 +7,23 @@ import { ScreenHeader } from '@/components/common/screen-header'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useAddGroupMemberMutation, useGroupQuery } from '@/lib/queries/use-app-queries'
+import {
+  useAddGroupMemberMutation,
+  useGroupQuery,
+  useRemoveGroupMemberMutation,
+  useRenameGroupMemberMutation,
+  useUpdateInviteStatusMutation,
+} from '@/lib/queries/use-app-queries'
 
 type MemberDraftMode = 'manual' | 'invite'
 
@@ -76,9 +90,15 @@ export function AddMemberPage() {
   const { groupId = '' } = useParams()
   const { data: group } = useGroupQuery(groupId)
   const addGroupMemberMutation = useAddGroupMemberMutation()
+  const renameGroupMemberMutation = useRenameGroupMemberMutation()
+  const removeGroupMemberMutation = useRemoveGroupMemberMutation()
+  const updateInviteStatusMutation = useUpdateInviteStatusMutation()
   const [memberMode, setMemberMode] = useState<MemberDraftMode>('manual')
   const [manualName, setManualName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  const [selectedMemberId, setSelectedMemberId] = useState('')
+  const [selectedMemberName, setSelectedMemberName] = useState('')
+  const [isManageMemberOpen, setIsManageMemberOpen] = useState(false)
 
   if (!group) {
     return null
@@ -90,6 +110,15 @@ export function AddMemberPage() {
     trimmedInviteEmail.length > 3 && trimmedInviteEmail.includes('@')
   const canAddManualMember = trimmedManualName.length > 0
   const canAddInvite = validInviteEmail
+  const selectedMember = group.memberEntries.find((member) => member.id === selectedMemberId)
+
+  useEffect(() => {
+    if (!selectedMember) {
+      return
+    }
+
+    setSelectedMemberName(selectedMember.name)
+  }, [selectedMember])
 
   return (
     <MobileShell>
@@ -107,20 +136,26 @@ export function AddMemberPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {group.members.map((member, index) => (
-              <div
+            {group.memberEntries.map((member, index) => (
+              <button
                 className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-sm text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)]"
-                key={member}
+                key={member.id}
+                onClick={() => {
+                  setSelectedMemberId(member.id)
+                  setSelectedMemberName(member.name)
+                  setIsManageMemberOpen(true)
+                }}
+                type="button"
               >
                 {shouldShowMemberAvatar(index) ? (
                   <Avatar className="size-6 border border-white/70">
                     <AvatarFallback className="bg-secondary text-[10px] font-semibold text-secondary-foreground">
-                      {member.slice(0, 2).toUpperCase()}
+                      {member.name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 ) : null}
-                {member}
-              </div>
+                {member.name}
+              </button>
             ))}
           </div>
         </section>
@@ -221,21 +256,67 @@ export function AddMemberPage() {
                   <h3 className="text-sm font-medium text-foreground">Invited</h3>
                 </div>
 
-                {group.invitedEmails.length > 0 ? (
+                {group.invitedEntries.length > 0 ? (
                   <div className="space-y-2">
-                    {group.invitedEmails.map((email) => (
+                    {group.invitedEntries.map((entry) => (
                       <div
                         className="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 shadow-none"
-                        key={email}
+                        key={entry.id}
                       >
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-foreground">
-                            {email}
+                            {entry.email}
                           </p>
                         </div>
-                        <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
-                          Invited
-                        </Badge>
+                        <div className="ml-3 flex items-center gap-2">
+                          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
+                            Invited
+                          </Badge>
+                          <Button
+                            className="h-8 rounded-full px-3"
+                            disabled={updateInviteStatusMutation.isPending}
+                            onClick={() =>
+                              updateInviteStatusMutation.mutate({
+                                groupId,
+                                inviteStatus: 'accepted',
+                                memberId: entry.id,
+                              })
+                            }
+                            type="button"
+                            variant="secondary"
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            className="h-8 rounded-full px-3"
+                            disabled={updateInviteStatusMutation.isPending}
+                            onClick={() =>
+                              updateInviteStatusMutation.mutate({
+                                groupId,
+                                inviteStatus: 'pending',
+                                memberId: entry.id,
+                              })
+                            }
+                            type="button"
+                            variant="secondary"
+                          >
+                            Resend
+                          </Button>
+                          <Button
+                            className="h-8 rounded-full px-3 text-destructive hover:text-destructive"
+                            disabled={removeGroupMemberMutation.isPending}
+                            onClick={() =>
+                              removeGroupMemberMutation.mutate({
+                                groupId,
+                                memberId: entry.id,
+                              })
+                            }
+                            type="button"
+                            variant="ghost"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -282,6 +363,73 @@ export function AddMemberPage() {
           )}
         </section>
       </div>
+
+      <Drawer direction="bottom" open={isManageMemberOpen} onOpenChange={setIsManageMemberOpen}>
+        <DrawerContent className="mx-auto max-w-3xl border-none bg-[#fffdf6]">
+          <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
+            <DrawerTitle className="text-xl font-semibold">Manage member</DrawerTitle>
+            <DrawerDescription>Rename or remove this member from the group.</DrawerDescription>
+          </DrawerHeader>
+
+          <div className="space-y-4 px-4 pb-2">
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-foreground" htmlFor="member-rename">
+                Member name
+              </label>
+              <Input
+                className="h-12 rounded-2xl border-white/80 bg-white/85 shadow-none"
+                id="member-rename"
+                value={selectedMemberName}
+                onChange={(event) => setSelectedMemberName(event.target.value)}
+              />
+            </div>
+          </div>
+
+          <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
+            <Button
+              className="h-12 rounded-2xl"
+              disabled={!selectedMember || selectedMemberName.trim().length === 0 || renameGroupMemberMutation.isPending}
+              onClick={async () => {
+                if (!selectedMember) {
+                  return
+                }
+
+                await renameGroupMemberMutation.mutateAsync({
+                  groupId,
+                  memberId: selectedMember.id,
+                  name: selectedMemberName,
+                })
+                setIsManageMemberOpen(false)
+              }}
+              type="button"
+            >
+              Save member
+            </Button>
+            <Button
+              className="h-12 rounded-2xl text-destructive hover:text-destructive"
+              disabled={!selectedMember || removeGroupMemberMutation.isPending}
+              onClick={async () => {
+                if (!selectedMember) {
+                  return
+                }
+
+                await removeGroupMemberMutation.mutateAsync({
+                  groupId,
+                  memberId: selectedMember.id,
+                })
+                setIsManageMemberOpen(false)
+              }}
+              type="button"
+              variant="secondary"
+            >
+              Remove member
+            </Button>
+            <Button className="h-12 rounded-2xl" onClick={() => setIsManageMemberOpen(false)} type="button" variant="secondary">
+              Close
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </MobileShell>
   )
 }

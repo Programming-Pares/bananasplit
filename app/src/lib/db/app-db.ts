@@ -1,10 +1,11 @@
 import Dexie, { type Table } from 'dexie'
 
 export type SyncStatus = 'local' | 'synced' | 'failed'
-export type ActivityType = 'expense' | 'settlement'
+export type ActivityType = 'expense' | 'settlement' | 'system'
 export type MemberSource = 'manual' | 'invite' | 'system'
 export type InviteStatus = 'accepted' | 'pending'
 export type AuthProvider = 'local' | 'google'
+export type RecurringFrequency = 'weekly' | 'monthly'
 
 export type GroupRecord = {
   createdAt: number
@@ -83,8 +84,23 @@ export type ActivityRecord = {
   groupId: string
   id: string
   message: string
+  readAt: number | null
   relatedId: string
   type: ActivityType
+}
+
+export type RecurringExpenseRecord = {
+  amountCents: number
+  createdAt: number
+  deletedAt: number | null
+  frequency: RecurringFrequency
+  groupId: string
+  id: string
+  isPaused: boolean
+  paidByMemberId: string
+  participantMemberIdsJson: string
+  title: string
+  updatedAt: number
 }
 
 export type AppSettingsRecord = {
@@ -124,6 +140,7 @@ export class BananaSplitDatabase extends Dexie {
   groupMembers!: Table<GroupMemberRecord, string>
   groups!: Table<GroupRecord, string>
   members!: Table<MemberRecord, string>
+  recurringExpenses!: Table<RecurringExpenseRecord, string>
   settings!: Table<AppSettingsRecord, 'settings'>
   settlements!: Table<SettlementRecord, string>
   syncOutbox!: Table<SyncOutboxRecord, string>
@@ -164,6 +181,41 @@ export class BananaSplitDatabase extends Dexie {
             group.isDone = group.isDone ?? false
           })
       })
+
+    this.version(3)
+      .stores({
+        activity: 'id, groupId, createdAt, type, readAt',
+        expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
+        expenses: 'id, groupId, createdAt, updatedAt, deletedAt',
+        groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
+        groups: 'id, updatedAt, deletedAt, isActive, isDone',
+        members: 'id, email, updatedAt, deletedAt',
+        recurringExpenses: 'id, groupId, frequency, isPaused, deletedAt, updatedAt',
+        settings: 'id',
+        settlements: 'id, groupId, createdAt, updatedAt, deletedAt',
+        syncOutbox: 'id, status, createdAt, entityType, entityId',
+      })
+      .upgrade(async (transaction) => {
+        await transaction
+          .table<ActivityRecord, string>('activity')
+          .toCollection()
+          .modify((activity) => {
+            activity.readAt = activity.readAt ?? null
+          })
+      })
+
+    this.version(4).stores({
+      activity: 'id, groupId, createdAt, type, readAt',
+      expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
+      expenses: 'id, groupId, createdAt, updatedAt, deletedAt',
+      groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
+      groups: 'id, updatedAt, deletedAt, isActive, isDone',
+      members: 'id, email, updatedAt, deletedAt',
+      recurringExpenses: 'id, groupId, frequency, isPaused, deletedAt, updatedAt',
+      settings: 'id',
+      settlements: 'id, groupId, createdAt, updatedAt, deletedAt',
+      syncOutbox: 'id, status, createdAt, entityType, entityId',
+    })
   }
 }
 
