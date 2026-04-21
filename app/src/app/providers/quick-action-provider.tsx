@@ -13,8 +13,8 @@ type SheetView = 'actions' | 'expense' | 'settlement'
 type QuickActionContextValue = {
   closeSheet: () => void
   openActionSheet: () => void
-  openExpenseSheet: () => void
-  openSettlementSheet: () => void
+  openExpenseSheet: (groupId?: string) => void
+  openSettlementSheet: (groupId?: string) => void
 }
 
 const QuickActionContext = createContext<QuickActionContextValue | null>(null)
@@ -22,22 +22,27 @@ const QuickActionContext = createContext<QuickActionContextValue | null>(null)
 export function QuickActionProvider({ children }: PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false)
   const [view, setView] = useState<SheetView>('actions')
+  const [groupId, setGroupId] = useState<string | null>(null)
 
   const value = useMemo<QuickActionContextValue>(
     () => ({
       closeSheet: () => {
         setIsOpen(false)
+        setGroupId(null)
         setView('actions')
       },
       openActionSheet: () => {
+        setGroupId(null)
         setView('actions')
         setIsOpen(true)
       },
-      openExpenseSheet: () => {
+      openExpenseSheet: (nextGroupId) => {
+        setGroupId(nextGroupId ?? null)
         setView('expense')
         setIsOpen(true)
       },
-      openSettlementSheet: () => {
+      openSettlementSheet: (nextGroupId) => {
+        setGroupId(nextGroupId ?? null)
         setView('settlement')
         setIsOpen(true)
       },
@@ -54,6 +59,7 @@ export function QuickActionProvider({ children }: PropsWithChildren) {
         onOpenChange={setIsOpen}
         onSelectExpense={value.openExpenseSheet}
         onSelectSettlement={value.openSettlementSheet}
+        selectedGroupId={groupId}
         view={view}
       />
     </QuickActionContext.Provider>

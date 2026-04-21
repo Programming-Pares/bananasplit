@@ -1,16 +1,22 @@
-import { Ellipsis, Plus, UserPlus, Wallet } from 'lucide-react'
+import { CheckCheck, Ellipsis, Plus, ToggleLeft, ToggleRight, UserPlus, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { useQuickActions } from '@/app/providers/quick-action-provider'
+import { EmptyState } from '@/components/common/empty-state'
 import { MobileShell } from '@/components/common/mobile-shell'
 import { ScreenHeader } from '@/components/common/screen-header'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GroupBalanceCard } from '@/features/groups/components/group-balance-card'
 import { GroupExpenseList } from '@/features/groups/components/group-expense-list'
-import { useGroupQuery } from '@/lib/queries/use-app-queries'
+import {
+  useGroupQuery,
+  useSetGroupActiveStateMutation,
+  useSetGroupDoneStateMutation,
+} from '@/lib/queries/use-app-queries'
 
 function shouldShowMemberAvatar(index: number) {
   return index % 2 === 0
@@ -21,10 +27,15 @@ export function GroupDetailsPage() {
   const { data: group } = useGroupQuery(groupId)
   const { openExpenseSheet, openSettlementSheet } = useQuickActions()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const setGroupActiveStateMutation = useSetGroupActiveStateMutation()
+  const setGroupDoneStateMutation = useSetGroupDoneStateMutation()
 
   if (!group) {
     return null
   }
+
+  const menuActionPending =
+    setGroupActiveStateMutation.isPending || setGroupDoneStateMutation.isPending
 
   return (
     <MobileShell>
@@ -44,6 +55,7 @@ export function GroupDetailsPage() {
             {isMenuOpen ? (
               <div className="absolute right-0 top-12 z-20 w-52 rounded-[24px] border border-white/80 bg-[#fffdf6] p-2 shadow-[0_20px_40px_rgba(63,52,25,0.12)]">
                 <Button
+                  disabled={menuActionPending}
                   asChild
                   className="h-11 w-full justify-start rounded-2xl"
                   variant="ghost"
@@ -55,10 +67,39 @@ export function GroupDetailsPage() {
                 </Button>
                 <Button
                   className="h-11 w-full justify-start rounded-2xl"
+                  disabled={menuActionPending || group.isDone}
                   variant="ghost"
+                  onClick={async () => {
+                    await setGroupActiveStateMutation.mutateAsync({
+                      groupId,
+                      isActive: !group.isActive,
+                    })
+                    setIsMenuOpen(false)
+                  }}
                   type="button"
                 >
-                  Mark as done
+                  {group.isActive ? (
+                    <ToggleRight className="size-4" />
+                  ) : (
+                    <ToggleLeft className="size-4" />
+                  )}
+                  {group.isActive ? 'Make inactive' : 'Make active'}
+                </Button>
+                <Button
+                  className="h-11 w-full justify-start rounded-2xl"
+                  variant="ghost"
+                  disabled={menuActionPending}
+                  onClick={async () => {
+                    await setGroupDoneStateMutation.mutateAsync({
+                      groupId,
+                      isDone: !group.isDone,
+                    })
+                    setIsMenuOpen(false)
+                  }}
+                  type="button"
+                >
+                  <CheckCheck className="size-4" />
+                  {group.isDone ? 'Reopen group' : 'Mark as done'}
                 </Button>
                 <Button
                   className="h-11 w-full justify-start rounded-2xl text-destructive hover:text-destructive"
@@ -77,6 +118,15 @@ export function GroupDetailsPage() {
       />
 
       <div className="space-y-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
+            {group.isDone ? 'Done' : 'Open'}
+          </Badge>
+          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
+            {group.isActive ? 'Active' : 'Inactive'}
+          </Badge>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           {group.members.map((member, index) => (
             <div
@@ -98,14 +148,20 @@ export function GroupDetailsPage() {
         <GroupBalanceCard items={group.balanceItems} />
 
         <div className="grid grid-cols-2 gap-3">
-          <Button className="h-12 rounded-2xl" onClick={openExpenseSheet} type="button">
+          <Button
+            className="h-12 rounded-2xl"
+            disabled={group.isDone}
+            onClick={() => openExpenseSheet(groupId)}
+            type="button"
+          >
             <Plus className="size-4" />
             Expense
           </Button>
           <Button
             className="h-12 rounded-2xl"
+            disabled={group.isDone}
             variant="secondary"
-            onClick={openSettlementSheet}
+            onClick={() => openSettlementSheet(groupId)}
             type="button"
           >
             <Wallet className="size-4" />
@@ -126,11 +182,19 @@ export function GroupDetailsPage() {
             <GroupExpenseList items={group.expenses} />
           </TabsContent>
           <TabsContent className="mt-0 space-y-3" value="balances">
-            {group.balanceItems.map((item) => (
-              <div className="rounded-[22px] bg-card/90 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)]" key={item}>
-                {item}
-              </div>
-            ))}
+            {group.balanceItems.length === 0 ? (
+              <EmptyState
+                description="Once expenses create debts between members, balance lines will appear here."
+                icon={Wallet}
+                title="No balances yet"
+              />
+            ) : (
+              group.balanceItems.map((item) => (
+                <div className="rounded-[22px] bg-card/90 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)]" key={item}>
+                  {item}
+                </div>
+              ))
+            )}
           </TabsContent>
         </Tabs>
       </div>

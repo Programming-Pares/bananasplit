@@ -1,5 +1,7 @@
+import { EmptyState } from '@/components/common/empty-state'
 import { AppLogo } from '@/components/common/app-logo'
 import { MobileShell } from '@/components/common/mobile-shell'
+import { Users } from 'lucide-react'
 import { GroupCard } from '@/features/dashboard/components/group-card'
 import { useGroupsQuery } from '@/lib/queries/use-app-queries'
 
@@ -24,9 +26,15 @@ export function GroupsPage() {
         </header>
 
         <div className="space-y-3">
-          {data.map((group) => (
-            <GroupCard key={group.id} {...group} />
-          ))}
+          {data.length === 0 ? (
+            <EmptyState
+              description="Create your first group to start tracking shared expenses."
+              icon={Users}
+              title="No groups yet"
+            />
+          ) : (
+            data.map((group) => <GroupCard key={group.id} {...group} />)
+          )}
         </div>
       </div>
     </MobileShell>

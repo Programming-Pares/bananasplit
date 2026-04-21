@@ -1,13 +1,17 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { MobileShell } from '@/components/common/mobile-shell'
 import { ScreenHeader } from '@/components/common/screen-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useCreateGroupMutation } from '@/lib/queries/use-app-queries'
 
 export function CreateGroupPage() {
+  const navigate = useNavigate()
   const [groupName, setGroupName] = useState('')
   const [description, setDescription] = useState('')
+  const createGroupMutation = useCreateGroupMutation()
   const canCreateGroup = groupName.trim().length > 0
 
   return (
@@ -52,7 +56,18 @@ export function CreateGroupPage() {
         </div>
 
         <div className="grid gap-3 pt-2">
-          <Button className="h-12 rounded-2xl" disabled={!canCreateGroup} type="button">
+          <Button
+            className="h-12 rounded-2xl"
+            disabled={!canCreateGroup || createGroupMutation.isPending}
+            onClick={async () => {
+              const groupId = await createGroupMutation.mutateAsync({
+                description: description.trim(),
+                name: groupName.trim(),
+              })
+              navigate(`/groups/${groupId}`)
+            }}
+            type="button"
+          >
             Create group
           </Button>
         </div>

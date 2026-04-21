@@ -1,4 +1,6 @@
+import { EmptyState } from '@/components/common/empty-state'
 import { Link } from 'react-router-dom'
+import { ReceiptText } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -16,6 +18,16 @@ type GroupExpenseListProps = {
 }
 
 export function GroupExpenseList({ items }: GroupExpenseListProps) {
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        description="Add the first expense in this group to start tracking shared spending."
+        icon={ReceiptText}
+        title="No expenses yet"
+      />
+    )
+  }
+
   return (
     <div className="space-y-3">
       {items.map((item) => (

@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   Wallet,
 } from 'lucide-react'
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { MobileShell } from '@/components/common/mobile-shell'
 import { ScreenHeader } from '@/components/common/screen-header'
@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useSettingsQuery } from '@/lib/queries/use-app-queries'
+import { useSettingsQuery, useUpdateAuthStateMutation } from '@/lib/queries/use-app-queries'
 
 function SettingsRow({
   icon: Icon,
@@ -46,14 +46,17 @@ function SettingsRow({
 
 export function SettingsPage() {
   const { data } = useSettingsQuery()
-  const [isSignedIn, setIsSignedIn] = useState(false)
+  const updateAuthStateMutation = useUpdateAuthStateMutation()
 
   if (!data) {
     return null
   }
 
-  const accountName = isSignedIn ? 'Sebas via Google' : data.userName
-  const accountEmail = isSignedIn ? 'sebas@gmail.com' : 'Not signed in'
+  const accountName =
+    data.authProvider === 'google' && data.isSignedIn
+      ? `${data.userName} via Google`
+      : data.userName
+  const accountEmail = data.accountEmail ?? 'Not signed in'
 
   return (
     <MobileShell>
@@ -62,28 +65,33 @@ export function SettingsPage() {
       <div className="space-y-5">
         <Card className="border-0 bg-[linear-gradient(160deg,#fff7d3,#fffef8)] shadow-[0_16px_32px_rgba(245,181,0,0.16)]">
           <CardContent className="space-y-5 p-5">
-            <div className="flex items-center gap-4">
-              <Avatar className="size-16 border border-white/80">
-                <AvatarFallback className="bg-secondary text-lg font-semibold text-secondary-foreground">
-                  {accountName.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 space-y-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-banana-900)]/60">
-                    Account
-                  </p>
-                  <p className="truncate text-2xl font-semibold tracking-tight text-[var(--color-banana-950)]">
-                    {accountName}
-                  </p>
+            <Link className="block rounded-[28px] outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring/50" to="/profile">
+              <div className="flex items-center gap-4">
+                <Avatar className="size-16 border border-white/80">
+                  <AvatarFallback className="bg-secondary text-lg font-semibold text-secondary-foreground">
+                    {accountName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-banana-900)]/60">
+                      Account
+                    </p>
+                    <p className="truncate text-2xl font-semibold tracking-tight text-[var(--color-banana-950)]">
+                      {accountName}
+                    </p>
+                  </div>
+                  <p className="truncate text-sm text-muted-foreground">{accountEmail}</p>
                 </div>
-                <p className="truncate text-sm text-muted-foreground">{accountEmail}</p>
+                <div className="rounded-2xl bg-white/80 p-2 text-[var(--color-banana-900)]">
+                  <ChevronRight className="size-4" />
+                </div>
               </div>
-            </div>
+            </Link>
 
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="rounded-full bg-white/80 px-3 py-1 text-[11px] text-[var(--color-banana-900)]">
-                {isSignedIn ? 'Signed in' : 'Local mode'}
+                {data.isSignedIn ? 'Signed in' : 'Local mode'}
               </Badge>
               <Badge className="rounded-full bg-white/80 px-3 py-1 text-[11px] text-[var(--color-banana-900)]">
                 Offline first
@@ -91,7 +99,7 @@ export function SettingsPage() {
             </div>
 
             <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground">
-              {isSignedIn
+              {data.isSignedIn
                 ? 'Your account is connected for a simpler sign-in experience. Local data still stays first in this MVP.'
                 : 'You are currently using the app in local mode. Sign in when you want a linked account later.'}
             </div>
@@ -117,10 +125,17 @@ export function SettingsPage() {
               </div>
 
               <div className="mt-4 grid gap-3">
-                {!isSignedIn ? (
+                {!data.isSignedIn ? (
                   <Button
                     className="h-12 rounded-2xl"
-                    onClick={() => setIsSignedIn(true)}
+                    disabled={updateAuthStateMutation.isPending}
+                    onClick={() =>
+                      updateAuthStateMutation.mutate({
+                        accountEmail: 'sebas@gmail.com',
+                        authProvider: 'google',
+                        isSignedIn: true,
+                      })
+                    }
                     type="button"
                   >
                     Sign in with Google
@@ -129,7 +144,14 @@ export function SettingsPage() {
                   <Button
                     className="h-12 rounded-2xl"
                     variant="secondary"
-                    onClick={() => setIsSignedIn(false)}
+                    disabled={updateAuthStateMutation.isPending}
+                    onClick={() =>
+                      updateAuthStateMutation.mutate({
+                        accountEmail: 'sebas@gmail.com',
+                        authProvider: 'google',
+                        isSignedIn: true,
+                      })
+                    }
                     type="button"
                   >
                     Connected to Google
@@ -142,11 +164,18 @@ export function SettingsPage() {
               This sign-in is UI-functional for now: you can toggle signed-in state and logout from this page.
             </div>
 
-            {isSignedIn ? (
+            {data.isSignedIn ? (
               <Button
                 className="h-12 w-full rounded-2xl text-destructive hover:text-destructive"
                 variant="secondary"
-                onClick={() => setIsSignedIn(false)}
+                disabled={updateAuthStateMutation.isPending}
+                onClick={() =>
+                  updateAuthStateMutation.mutate({
+                    accountEmail: null,
+                    authProvider: 'local',
+                    isSignedIn: false,
+                  })
+                }
                 type="button"
               >
                 <LogOut className="size-4" />
@@ -176,7 +205,11 @@ export function SettingsPage() {
             <Separator />
             <SettingsRow icon={CloudOff} label="Sync status" value="Offline only" />
             <Separator />
-            <SettingsRow icon={ShieldCheck} label="Session security" value={isSignedIn ? 'Google linked' : 'Local only'} />
+            <SettingsRow
+              icon={ShieldCheck}
+              label="Session security"
+              value={data.isSignedIn ? 'Google linked' : 'Local only'}
+            />
           </CardContent>
         </Card>
       </div>

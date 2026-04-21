@@ -1,7 +1,8 @@
-import { Bell } from 'lucide-react'
+import { Bell, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { AppLogo } from '@/components/common/app-logo'
+import { EmptyState } from '@/components/common/empty-state'
 import { MobileShell } from '@/components/common/mobile-shell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,8 @@ export function DashboardPage() {
   if (!data) {
     return null
   }
+
+  const attentionGroups = data.groups.filter((group) => group.openBalanceCount > 0)
 
   return (
     <MobileShell>
@@ -53,11 +56,15 @@ export function DashboardPage() {
             </Badge>
           </div>
           <div className="space-y-3">
-            {data.groups
-              .filter((group) => group.openBalanceCount > 0)
-              .map((group) => (
-                <GroupCard key={`attention-${group.id}`} {...group} />
-              ))}
+            {attentionGroups.length === 0 ? (
+              <EmptyState
+                description="Open balances between members will show up here when a group needs follow-up."
+                icon={Bell}
+                title="Nothing needs attention"
+              />
+            ) : (
+              attentionGroups.map((group) => <GroupCard key={`attention-${group.id}`} {...group} />)
+            )}
           </div>
         </section>
 
@@ -67,9 +74,15 @@ export function DashboardPage() {
             <span className="text-sm text-muted-foreground">Balances first</span>
           </div>
           <div className="space-y-3">
-            {data.groups.map((group) => (
-              <GroupCard key={group.id} {...group} />
-            ))}
+            {data.groups.length === 0 ? (
+              <EmptyState
+                description="Create a group to start adding members, expenses, and balances."
+                icon={Users}
+                title="No groups yet"
+              />
+            ) : (
+              data.groups.map((group) => <GroupCard key={group.id} {...group} />)
+            )}
           </div>
         </section>
 

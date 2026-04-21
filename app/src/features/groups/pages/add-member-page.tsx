@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useGroupQuery } from '@/lib/queries/use-app-queries'
+import { useAddGroupMemberMutation, useGroupQuery } from '@/lib/queries/use-app-queries'
 
 type MemberDraftMode = 'manual' | 'invite'
 
@@ -75,13 +75,10 @@ function QrInvitePreview() {
 export function AddMemberPage() {
   const { groupId = '' } = useParams()
   const { data: group } = useGroupQuery(groupId)
+  const addGroupMemberMutation = useAddGroupMemberMutation()
   const [memberMode, setMemberMode] = useState<MemberDraftMode>('manual')
   const [manualName, setManualName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
-  const [invitedEmails, setInvitedEmails] = useState<string[]>([
-    'ana@example.com',
-    'mark@example.com',
-  ])
 
   if (!group) {
     return null
@@ -164,7 +161,17 @@ export function AddMemberPage() {
               </div>
               <Button
                 className="h-12 w-full rounded-2xl"
-                disabled={!canAddManualMember}
+                disabled={!canAddManualMember || addGroupMemberMutation.isPending}
+                onClick={async () => {
+                  await addGroupMemberMutation.mutateAsync({
+                    email: null,
+                    groupId,
+                    inviteStatus: 'accepted',
+                    name: trimmedManualName,
+                    source: 'manual',
+                  })
+                  setManualName('')
+                }}
                 type="button"
               >
                 <UserPlus className="size-4" />
@@ -190,9 +197,15 @@ export function AddMemberPage() {
                   />
                   <Button
                     className="h-12 rounded-2xl px-4"
-                    disabled={!canAddInvite}
-                    onClick={() => {
-                      setInvitedEmails((current) => [...current, trimmedInviteEmail])
+                    disabled={!canAddInvite || addGroupMemberMutation.isPending}
+                    onClick={async () => {
+                      await addGroupMemberMutation.mutateAsync({
+                        email: trimmedInviteEmail,
+                        groupId,
+                        inviteStatus: 'pending',
+                        name: trimmedInviteEmail,
+                        source: 'invite',
+                      })
                       setInviteEmail('')
                     }}
                     type="button"
@@ -208,9 +221,9 @@ export function AddMemberPage() {
                   <h3 className="text-sm font-medium text-foreground">Invited</h3>
                 </div>
 
-                {invitedEmails.length > 0 ? (
+                {group.invitedEmails.length > 0 ? (
                   <div className="space-y-2">
-                    {invitedEmails.map((email) => (
+                    {group.invitedEmails.map((email) => (
                       <div
                         className="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 shadow-none"
                         key={email}

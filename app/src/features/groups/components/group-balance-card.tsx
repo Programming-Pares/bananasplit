@@ -7,7 +7,7 @@ type GroupBalanceCardProps = {
 }
 
 function parseBalanceItem(item: string) {
-  const match = item.match(/^(.*?) owed P ([\d.]+) to (.*)$/)
+  const match = item.match(/^(.*?) owed ₱([\d.,]+) to (.*)$/)
 
   if (!match) {
     return null
@@ -17,7 +17,7 @@ function parseBalanceItem(item: string) {
   const involvesYou = from === 'You' || to === 'You'
 
   return {
-    amount: `P ${amount}`,
+    amount: `₱${amount}`,
     from,
     involvesYou,
     to,
@@ -25,7 +25,7 @@ function parseBalanceItem(item: string) {
 }
 
 export function GroupBalanceCard({ items }: GroupBalanceCardProps) {
-  const visibleItems = items.filter((item) => !/\bP\s*0(?:\.00)?\b/i.test(item))
+  const visibleItems = items.filter((item) => !/₱0(?:\.00)?\b/i.test(item))
   const parsedItems = visibleItems
     .map(parseBalanceItem)
     .filter((item): item is NonNullable<ReturnType<typeof parseBalanceItem>> => item !== null)
