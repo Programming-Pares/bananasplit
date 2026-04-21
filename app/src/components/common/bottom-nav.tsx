@@ -22,7 +22,7 @@ export function BottomNav() {
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-3xl px-4 pb-4">
       <div className="relative">
         <div className="relative rounded-[32px] border border-white/60 bg-card/95 px-2 pb-2 pt-4 shadow-[0_16px_36px_rgba(54,43,14,0.12)] backdrop-blur">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-end">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
             <div className="grid grid-cols-2 gap-1">
               {leftNavItems.map((item) => {
                 const isActive =
