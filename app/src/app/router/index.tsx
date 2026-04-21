@@ -9,6 +9,7 @@ import { GroupDetailsPage } from '@/features/groups/pages/group-details-page'
 import { GroupsPage } from '@/features/groups-list/pages/groups-page'
 import { NotificationsPage } from '@/features/notifications/pages/notifications-page'
 import { OnboardingPage } from '@/features/onboarding/pages/onboarding-page'
+import { SearchPage } from '@/features/search/pages/search-page'
 import { ProfilePage } from '@/features/settings/pages/profile-page'
 import { SettingsPage } from '@/features/settings/pages/settings-page'
 import { NotFoundPage } from '@/pages/not-found-page'
@@ -57,6 +58,10 @@ export const appRouter = createBrowserRouter([
   {
     path: '/profile',
     element: <ProfilePage />,
+  },
+  {
+    path: '/search',
+    element: <SearchPage />,
   },
   {
     path: '*',

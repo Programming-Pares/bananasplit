@@ -538,6 +538,35 @@ export function QuickActionSheet({
                       <div className="space-y-2">
                         <p className="text-sm font-medium text-foreground">Split with</p>
                         <div className="flex flex-wrap gap-2">
+                          <button
+                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white"
+                            onClick={() => setExpenseParticipantIds(members.map((member) => member.id))}
+                            type="button"
+                          >
+                            All members
+                          </button>
+                          <button
+                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white"
+                            onClick={() => setExpenseParticipantIds(expensePaidById ? [expensePaidById] : [])}
+                            type="button"
+                          >
+                            Only payer
+                          </button>
+                          <button
+                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white"
+                            onClick={() =>
+                              setExpenseParticipantIds(
+                                members
+                                  .filter((member) => member.id !== expensePaidById)
+                                  .map((member) => member.id),
+                              )
+                            }
+                            type="button"
+                          >
+                            Exclude payer
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
                           {members.map((member, index) => {
                             const active = expenseParticipantIds.includes(member.id)
 

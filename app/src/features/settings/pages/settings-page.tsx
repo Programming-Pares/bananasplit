@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   ChevronRight,
   CloudOff,
@@ -5,7 +6,9 @@ import {
   LogOut,
   Mail,
   MoonStar,
+  RotateCcw,
   ShieldCheck,
+  Smartphone,
   Wallet,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -16,20 +19,41 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { Separator } from '@/components/ui/separator'
-import { useSettingsQuery, useUpdateAuthStateMutation } from '@/lib/queries/use-app-queries'
+import {
+  useResetLocalDataMutation,
+  useSettingsQuery,
+  useUpdateAuthStateMutation,
+  useUpdateCurrencyMutation,
+} from '@/lib/queries/use-app-queries'
 
 function SettingsRow({
   icon: Icon,
   label,
+  onClick,
+  showChevron = true,
   value,
 }: {
   icon: typeof Wallet
   label: string
+  onClick?: () => void
+  showChevron?: boolean
   value: string
 }) {
   return (
-    <button className="flex w-full items-center justify-between gap-3 py-3 text-left" type="button">
+    <button
+      className="flex w-full items-center justify-between gap-3 py-3 text-left"
+      onClick={onClick}
+      type="button"
+    >
       <div className="flex items-center gap-3">
         <div className="rounded-2xl bg-secondary p-2 text-secondary-foreground">
           <Icon className="size-4" />
@@ -38,7 +62,7 @@ function SettingsRow({
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>{value}</span>
-        <ChevronRight className="size-4" />
+        {showChevron ? <ChevronRight className="size-4" /> : null}
       </div>
     </button>
   )
@@ -47,6 +71,19 @@ function SettingsRow({
 export function SettingsPage() {
   const { data } = useSettingsQuery()
   const updateAuthStateMutation = useUpdateAuthStateMutation()
+  const updateCurrencyMutation = useUpdateCurrencyMutation()
+  const resetLocalDataMutation = useResetLocalDataMutation()
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
+  const [isResetOpen, setIsResetOpen] = useState(false)
+  const [selectedCurrency, setSelectedCurrency] = useState('PHP')
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+
+    setSelectedCurrency(data.currency)
+  }, [data])
 
   if (!data) {
     return null
@@ -57,6 +94,9 @@ export function SettingsPage() {
       ? `${data.userName} via Google`
       : data.userName
   const accountEmail = data.accountEmail ?? 'Not signed in'
+  const sessionMode = data.isSignedIn ? 'Signed in' : 'Local only'
+  const accountProvider = data.isSignedIn ? 'Google linked' : 'No external provider'
+  const shortDeviceId = data.deviceId.slice(0, 8).toUpperCase()
 
   return (
     <MobileShell>
@@ -190,9 +230,14 @@ export function SettingsPage() {
             <CardTitle className="text-base">Preferences</CardTitle>
           </CardHeader>
           <CardContent>
-            <SettingsRow icon={Wallet} label="Currency" value={data.currency} />
+            <SettingsRow
+              icon={Wallet}
+              label="Currency"
+              onClick={() => setIsCurrencyOpen(true)}
+              value={data.currency}
+            />
             <Separator />
-            <SettingsRow icon={MoonStar} label="Theme" value="Banana" />
+            <SettingsRow icon={MoonStar} label="Theme" showChevron={false} value="Banana" />
           </CardContent>
         </Card>
 
@@ -203,16 +248,157 @@ export function SettingsPage() {
           <CardContent>
             <SettingsRow icon={Download} label="Export local data" value="Ready" />
             <Separator />
-            <SettingsRow icon={CloudOff} label="Sync status" value="Offline only" />
+            <SettingsRow icon={CloudOff} label="Sync status" showChevron={false} value="Offline only" />
             <Separator />
-            <SettingsRow
-              icon={ShieldCheck}
-              label="Session security"
-              value={data.isSignedIn ? 'Google linked' : 'Local only'}
-            />
+            <div className="space-y-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-secondary p-2 text-secondary-foreground">
+                  <ShieldCheck className="size-4" />
+                </div>
+                <div>
+                  <p className="text-sm text-foreground">Session security</p>
+                  <p className="text-sm text-muted-foreground">
+                    Local account state and device identity for this installation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-[24px] bg-white/70 px-4 py-4 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Access mode</span>
+                  <span className="font-medium text-foreground">{sessionMode}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Account provider</span>
+                  <span className="font-medium text-foreground">{accountProvider}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Device ID</span>
+                  <span className="inline-flex items-center gap-2 font-medium text-foreground">
+                    <Smartphone className="size-4 text-muted-foreground" />
+                    <span className="font-mono">{shortDeviceId}</span>
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                className="h-12 w-full rounded-2xl text-destructive hover:text-destructive"
+                disabled={resetLocalDataMutation.isPending}
+                onClick={() => setIsResetOpen(true)}
+                type="button"
+                variant="secondary"
+              >
+                <RotateCcw className="size-4" />
+                Reset local data
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      <Drawer
+        direction="bottom"
+        open={isCurrencyOpen}
+        onOpenChange={(open) => {
+          setIsCurrencyOpen(open)
+          if (open) {
+            setSelectedCurrency(data.currency)
+          }
+        }}
+      >
+        <DrawerContent className="mx-auto max-w-3xl border-none bg-[#fffdf6]">
+          <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
+            <DrawerTitle className="text-xl font-semibold">Currency</DrawerTitle>
+            <DrawerDescription>Choose the local currency used by this device.</DrawerDescription>
+          </DrawerHeader>
+
+          <div className="space-y-3 px-4 pb-2">
+            <button
+              className={`flex w-full items-center justify-between rounded-[24px] border px-4 py-4 text-left transition-colors ${
+                selectedCurrency === 'PHP'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-white/80 bg-white/85 text-foreground'
+              }`}
+              onClick={() => setSelectedCurrency('PHP')}
+              type="button"
+            >
+              <div>
+                <p className="text-sm font-medium">Philippine Peso</p>
+                <p className={`mt-1 text-sm ${selectedCurrency === 'PHP' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                  PHP · ₱
+                </p>
+              </div>
+              <span className="text-sm font-medium">Available</span>
+            </button>
+          </div>
+
+          <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
+            <Button
+              className="h-12 rounded-2xl"
+              disabled={selectedCurrency === data.currency || updateCurrencyMutation.isPending}
+              onClick={async () => {
+                await updateCurrencyMutation.mutateAsync({
+                  currency: selectedCurrency,
+                })
+                setIsCurrencyOpen(false)
+              }}
+              type="button"
+            >
+              Save currency
+            </Button>
+            <Button
+              className="h-12 rounded-2xl"
+              onClick={() => setIsCurrencyOpen(false)}
+              type="button"
+              variant="secondary"
+            >
+              Close
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer direction="bottom" open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DrawerContent className="mx-auto max-w-3xl border-none bg-[#fffdf6]">
+          <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
+            <DrawerTitle className="text-xl font-semibold">Reset local data</DrawerTitle>
+            <DrawerDescription>
+              This clears groups, expenses, settlements, activity, and local account state on this device.
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="space-y-3 px-4 pb-2">
+            <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground">
+              After reset, the app will keep only the minimum local bootstrap profile needed to run again.
+            </div>
+          </div>
+
+          <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
+            <Button
+              className="h-12 rounded-2xl"
+              disabled={resetLocalDataMutation.isPending}
+              onClick={async () => {
+                await resetLocalDataMutation.mutateAsync()
+                setIsResetOpen(false)
+              }}
+              type="button"
+              variant="destructive"
+            >
+              Reset local data
+            </Button>
+            <Button
+              className="h-12 rounded-2xl"
+              onClick={() => setIsResetOpen(false)}
+              type="button"
+              variant="secondary"
+            >
+              Cancel
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </MobileShell>
   )
 }

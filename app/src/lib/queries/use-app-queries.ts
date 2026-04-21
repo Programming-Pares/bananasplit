@@ -2,20 +2,35 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
   addGroupMember,
+  createExpenseFromRecurring,
   createExpense,
   createGroup,
+  createRecurringExpense,
   createSettlement,
+  deleteExpense,
   getActivityData,
+  getAllGroupsData,
   getDashboardData,
   getExpenseById,
   getGroupById,
   getGroupsData,
+  getNotificationsData,
   getSettingsData,
   getSelectableGroupsData,
+  markAllNotificationsRead,
+  markNotificationRead,
+  renameGroupMember,
+  resetLocalData,
+  searchApp,
   setGroupActiveState,
   setGroupDoneState,
+  toggleRecurringExpensePaused,
+  updateInviteStatus,
+  updateExpense,
+  updateCurrency,
   updateProfile,
   updateAuthState,
+  removeGroupMember,
 } from '@/lib/repositories/mock-app-repository'
 
 export function useActivityQuery() {
@@ -62,6 +77,28 @@ export function useExpenseQuery(expenseId: string) {
   })
 }
 
+export function useAllGroupsQuery() {
+  return useQuery({
+    queryKey: ['all-groups'],
+    queryFn: getAllGroupsData,
+  })
+}
+
+export function useNotificationsQuery() {
+  return useQuery({
+    queryKey: ['notifications'],
+    queryFn: getNotificationsData,
+  })
+}
+
+export function useSearchQuery(query: string) {
+  return useQuery({
+    enabled: query.trim().length > 0,
+    queryKey: ['search', query],
+    queryFn: () => searchApp(query),
+  })
+}
+
 export function useSettingsQuery() {
   return useQuery({
     queryKey: ['settings'],
@@ -76,8 +113,11 @@ function useInvalidateAppData() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['groups'] }),
+      queryClient.invalidateQueries({ queryKey: ['all-groups'] }),
       queryClient.invalidateQueries({ queryKey: ['selectable-groups'] }),
+      queryClient.invalidateQueries({ queryKey: ['search'] }),
       queryClient.invalidateQueries({ queryKey: ['activity'] }),
+      queryClient.invalidateQueries({ queryKey: ['notifications'] }),
       queryClient.invalidateQueries({ queryKey: ['settings'] }),
       groupId
         ? queryClient.invalidateQueries({ queryKey: ['group', groupId] })
@@ -144,11 +184,123 @@ export function useUpdateAuthStateMutation() {
   })
 }
 
+export function useRenameGroupMemberMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: renameGroupMember,
+    onSuccess: async (_data, variables) => {
+      await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useRemoveGroupMemberMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: removeGroupMember,
+    onSuccess: async (_data, variables) => {
+      await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useUpdateInviteStatusMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: updateInviteStatus,
+    onSuccess: async (_data, variables) => {
+      await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useUpdateExpenseMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: updateExpense,
+    onSuccess: async (expenseId) => {
+      await invalidate()
+      await invalidate(undefined, expenseId)
+    },
+  })
+}
+
+export function useDeleteExpenseMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: deleteExpense,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useCreateRecurringExpenseMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: createRecurringExpense,
+    onSuccess: async (_data, variables) => {
+      await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useToggleRecurringExpensePausedMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: toggleRecurringExpensePaused,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useCreateExpenseFromRecurringMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: createExpenseFromRecurring,
+    onSuccess: async (expenseId) => {
+      await invalidate()
+      await invalidate(undefined, expenseId)
+    },
+  })
+}
+
+export function useUpdateCurrencyMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: updateCurrency,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
 export function useUpdateProfileMutation() {
   const invalidate = useInvalidateAppData()
 
   return useMutation({
     mutationFn: updateProfile,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useResetLocalDataMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: resetLocalData,
     onSuccess: async () => {
       await invalidate()
     },
@@ -173,6 +325,28 @@ export function useSetGroupDoneStateMutation() {
     mutationFn: setGroupDoneState,
     onSuccess: async (_data, variables) => {
       await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useMarkNotificationReadMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: markNotificationRead,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useMarkAllNotificationsReadMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: markAllNotificationsRead,
+    onSuccess: async () => {
+      await invalidate()
     },
   })
 }

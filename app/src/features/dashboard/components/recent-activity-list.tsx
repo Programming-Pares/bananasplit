@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 type ActivityItem = {
   id: string
   text: string
-  type: 'expense' | 'settlement'
+  type: 'expense' | 'settlement' | 'system'
 }
 
 type RecentActivityListProps = {
@@ -34,13 +34,19 @@ export function RecentActivityList({ items }: RecentActivityListProps) {
               <div className="mt-0.5 rounded-2xl bg-secondary p-2 text-secondary-foreground">
                 {item.type === 'expense' ? (
                   <ReceiptText className="size-4" />
-                ) : (
+                ) : item.type === 'settlement' ? (
                   <Wallet className="size-4" />
+                ) : (
+                  <ReceiptText className="size-4" />
                 )}
               </div>
               <div className="min-w-0 space-y-2">
                 <Badge className="rounded-full bg-secondary px-2.5 py-1 text-[10px] text-secondary-foreground">
-                  {item.type === 'expense' ? 'Expense' : 'Settlement'}
+                  {item.type === 'expense'
+                    ? 'Expense'
+                    : item.type === 'settlement'
+                      ? 'Settlement'
+                      : 'System'}
                 </Badge>
                 <p className="text-sm leading-6 text-muted-foreground">{item.text}</p>
               </div>
