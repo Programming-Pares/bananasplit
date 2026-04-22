@@ -14,7 +14,7 @@ import {
 import { Link } from 'react-router-dom'
 
 import { MobileShell } from '@/components/common/mobile-shell'
-import { ScreenHeader } from '@/components/common/screen-header'
+import { RootPageHeader } from '@/components/common/root-page-header'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer'
+import { ProUpgradeCard } from '@/features/pro/components/pro-upgrade-card'
 import { Separator } from '@/components/ui/separator'
 import {
   useResetLocalDataMutation,
@@ -58,9 +59,9 @@ function SettingsRow({
         <div className="rounded-2xl bg-secondary p-2 text-secondary-foreground">
           <Icon className="size-4" />
         </div>
-        <span className="text-sm text-foreground">{label}</span>
+        <span className="text-sm text-foreground sm:text-[15px]">{label}</span>
       </div>
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground sm:text-[15px]">
         <span>{value}</span>
         {showChevron ? <ChevronRight className="size-4" /> : null}
       </div>
@@ -100,9 +101,14 @@ export function SettingsPage() {
 
   return (
     <MobileShell>
-      <ScreenHeader title="Settings" />
-
       <div className="space-y-5">
+        <RootPageHeader
+          showNotifications
+          showSearch
+          subtitle="Account, preferences, and local data"
+          title="Settings"
+        />
+
         <Card className="border-0 bg-[linear-gradient(160deg,#fff7d3,#fffef8)] shadow-[0_16px_32px_rgba(245,181,0,0.16)]">
           <CardContent className="space-y-5 p-5">
             <Link className="block rounded-[28px] outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring/50" to="/profile">
@@ -117,11 +123,11 @@ export function SettingsPage() {
                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-banana-900)]/60">
                       Account
                     </p>
-                    <p className="truncate text-2xl font-semibold tracking-tight text-[var(--color-banana-950)]">
+                    <p className="truncate text-[1.65rem] font-semibold tracking-tight text-[var(--color-banana-950)] sm:text-[1.8rem]">
                       {accountName}
                     </p>
                   </div>
-                  <p className="truncate text-sm text-muted-foreground">{accountEmail}</p>
+                  <p className="truncate text-sm leading-6 text-muted-foreground sm:text-[15px]">{accountEmail}</p>
                 </div>
                 <div className="rounded-2xl bg-white/80 p-2 text-[var(--color-banana-900)]">
                   <ChevronRight className="size-4" />
@@ -138,7 +144,7 @@ export function SettingsPage() {
               </Badge>
             </div>
 
-            <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground">
+            <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
               {data.isSignedIn
                 ? 'Your account is connected for a simpler sign-in experience. Local data still stays first in this MVP.'
                 : 'You are currently using the app in local mode. Sign in when you want a linked account later.'}
@@ -148,7 +154,7 @@ export function SettingsPage() {
 
         <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
           <CardHeader className="pb-1">
-            <CardTitle className="text-base">Account</CardTitle>
+            <CardTitle>Account</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-[24px] bg-secondary/35 px-4 py-4">
@@ -157,8 +163,8 @@ export function SettingsPage() {
                   <Mail className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">Google sign in</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="text-[15px] font-medium text-foreground sm:text-base">Google sign in</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                     Simple account link for this MVP.
                   </p>
                 </div>
@@ -200,7 +206,7 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-[24px] bg-white/70 px-4 py-4 text-sm leading-6 text-muted-foreground">
+            <div className="rounded-[24px] bg-white/70 px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
               This sign-in is UI-functional for now: you can toggle signed-in state and logout from this page.
             </div>
 
@@ -227,7 +233,7 @@ export function SettingsPage() {
 
         <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
           <CardHeader className="pb-1">
-            <CardTitle className="text-base">Preferences</CardTitle>
+            <CardTitle>Preferences</CardTitle>
           </CardHeader>
           <CardContent>
             <SettingsRow
@@ -241,9 +247,11 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
+        <ProUpgradeCard />
+
         <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
           <CardHeader className="pb-1">
-            <CardTitle className="text-base">Data & safety</CardTitle>
+            <CardTitle>Data & safety</CardTitle>
           </CardHeader>
           <CardContent>
             <SettingsRow icon={Download} label="Export local data" value="Ready" />
@@ -256,14 +264,14 @@ export function SettingsPage() {
                   <ShieldCheck className="size-4" />
                 </div>
                 <div>
-                  <p className="text-sm text-foreground">Session security</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[15px] text-foreground sm:text-base">Session security</p>
+                  <p className="text-sm leading-6 text-muted-foreground sm:text-[15px]">
                     Local account state and device identity for this installation.
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3 rounded-[24px] bg-white/70 px-4 py-4 text-sm">
+              <div className="space-y-3 rounded-[24px] bg-white/70 px-4 py-4 text-sm sm:text-[15px]">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-muted-foreground">Access mode</span>
                   <span className="font-medium text-foreground">{sessionMode}</span>
@@ -325,12 +333,12 @@ export function SettingsPage() {
               type="button"
             >
               <div>
-                <p className="text-sm font-medium">Philippine Peso</p>
-                <p className={`mt-1 text-sm ${selectedCurrency === 'PHP' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                <p className="text-sm font-medium sm:text-[15px]">Philippine Peso</p>
+                <p className={`mt-1 text-sm sm:text-[15px] ${selectedCurrency === 'PHP' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                   PHP · ₱
                 </p>
               </div>
-              <span className="text-sm font-medium">Available</span>
+              <span className="text-sm font-medium sm:text-[15px]">Available</span>
             </button>
           </div>
 
@@ -370,7 +378,7 @@ export function SettingsPage() {
           </DrawerHeader>
 
           <div className="space-y-3 px-4 pb-2">
-            <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground">
+            <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
               After reset, the app will keep only the minimum local bootstrap profile needed to run again.
             </div>
           </div>

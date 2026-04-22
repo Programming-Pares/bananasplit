@@ -43,7 +43,7 @@ function MemberModeButton({
   return (
     <button
       className={cn(
-        'rounded-full border px-3 py-2 text-sm transition-colors',
+        'rounded-full border px-3 py-2 text-sm transition-colors sm:text-[15px]',
         active
           ? 'border-primary bg-primary text-primary-foreground'
           : 'border-border bg-white/80 text-foreground hover:bg-white',
@@ -132,13 +132,13 @@ export function AddMemberPage() {
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <Users className="size-4 text-muted-foreground" />
-            <h2 className="text-sm font-medium text-foreground">Current members</h2>
+            <h2 className="text-sm font-medium text-foreground sm:text-[15px]">Current members</h2>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {group.memberEntries.map((member, index) => (
               <button
-                className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-sm text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)]"
+                className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-sm text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)] sm:text-[15px]"
                 key={member.id}
                 onClick={() => {
                   setSelectedMemberId(member.id)
@@ -179,7 +179,7 @@ export function AddMemberPage() {
           {memberMode === 'manual' ? (
             <div className="space-y-3">
               <label
-                className="block text-sm font-medium text-foreground"
+                className="block text-sm font-medium text-foreground sm:text-[15px]"
                 htmlFor="member-name"
               >
                 Add member
@@ -191,7 +191,7 @@ export function AddMemberPage() {
                 value={manualName}
                 onChange={(event) => setManualName(event.target.value)}
               />
-              <div className="rounded-[24px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] px-4 py-4 text-sm leading-6 text-muted-foreground">
+              <div className="rounded-[24px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                 Manual members use a name only for now. Picture upload can come later.
               </div>
               <Button
@@ -217,7 +217,7 @@ export function AddMemberPage() {
             <div className="space-y-5">
               <div className="space-y-3">
                 <label
-                  className="block text-sm font-medium text-foreground"
+                  className="block text-sm font-medium text-foreground sm:text-[15px]"
                   htmlFor="member-email"
                 >
                   Invite by email
@@ -253,7 +253,7 @@ export function AddMemberPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Mail className="size-4 text-muted-foreground" />
-                  <h3 className="text-sm font-medium text-foreground">Invited</h3>
+                  <h3 className="text-sm font-medium text-foreground sm:text-[15px]">Invited</h3>
                 </div>
 
                 {group.invitedEntries.length > 0 ? (
@@ -264,7 +264,7 @@ export function AddMemberPage() {
                         key={entry.id}
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-foreground">
+                          <p className="truncate text-sm font-medium text-foreground sm:text-[15px]">
                             {entry.email}
                           </p>
                         </div>
@@ -321,7 +321,7 @@ export function AddMemberPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-4 text-sm text-muted-foreground">
+                  <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-4 text-sm text-muted-foreground sm:text-[15px]">
                     No email invites yet.
                   </div>
                 )}
@@ -330,8 +330,8 @@ export function AddMemberPage() {
               <div className="rounded-[30px] bg-[linear-gradient(160deg,#fff2bf,#fffef8)] p-5 shadow-[0_20px_40px_rgba(63,52,25,0.08)]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Invite via QR</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground sm:text-[15px]">Invite via QR</p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                       Let people scan to join this group quickly.
                     </p>
                   </div>
@@ -341,7 +341,7 @@ export function AddMemberPage() {
                 </div>
 
                 <div className="mt-5 grid gap-5 md:grid-cols-[minmax(0,1fr)_12rem] md:items-center">
-                  <div className="rounded-[24px] bg-white/70 px-4 py-4 text-sm leading-6 text-muted-foreground">
+                  <div className="rounded-[24px] bg-white/70 px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                     Share this invite code with friends who are not in the room. They
                     can join with link, QR, or forwarded invite.
                   </div>
@@ -373,7 +373,7 @@ export function AddMemberPage() {
 
           <div className="space-y-4 px-4 pb-2">
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-foreground" htmlFor="member-rename">
+              <label className="block text-sm font-medium text-foreground sm:text-[15px]" htmlFor="member-rename">
                 Member name
               </label>
               <Input

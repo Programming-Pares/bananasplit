@@ -22,9 +22,9 @@ function SearchSection({
 
   return (
     <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
+        <CardHeader className="pb-2">
+        <CardTitle>{title}</CardTitle>
+        </CardHeader>
       <CardContent className="space-y-3">
         {items.map((item) => (
           <Link
@@ -40,8 +40,8 @@ function SearchSection({
                     : '/groups'
             }
           >
-            <p className="text-sm font-medium text-foreground">{item.title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{item.subtitle}</p>
+            <p className="text-[15px] font-medium text-foreground sm:text-base">{item.title}</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">{item.subtitle}</p>
           </Link>
         ))}
       </CardContent>

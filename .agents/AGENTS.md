@@ -1,3 +1,5 @@
+## TODO: Force agent to use this AGENTS.md
+
 ## Repo Context
 
 - Repository shape: `app/`, `api/`, `landing/`
@@ -15,6 +17,36 @@
 - Do not leave empty `try/catch` blocks anywhere.
 - Do not reinvent the wheel! Use open source, self-hosted libraries when needed. Ask the user, and help them qualify their selection.
 - Design UI for the end-user, not for the schema!
+
+## Responsive UI rules
+
+- BananaSplit is mobile-first. Optimize for smartphones first, especially smaller and larger phones, not desktop-first responsive layouts.
+- Treat typography, spacing, and line-height as one system. Do not change font size alone without checking wrap, vertical rhythm, and surrounding spacing.
+- Use available width well on phones. Do not force narrow text columns unless the composition explicitly needs a stacked headline.
+- For wrapped headings, fix the composition with line-height first. Avoid:
+  - overly airy multi-line headings
+  - unnaturally crushed poster-style stacking
+- Prefer mobile-first text sizing with modest `sm:` increases only where larger phones genuinely benefit.
+- Body text, helper text, and card copy should remain compact and readable on small phones. Prefer controlled line-height over loose vertical spacing.
+- Reduce padding and inter-section gaps on smaller phones when the screen starts feeling tall or wasteful.
+- Shared surfaces must be responsive by default:
+  - page headers
+  - cards
+  - drawers
+  - forms
+  - chips / pills / segmented filters
+  - keypad / calculator-style inputs
+- If chip rows or filters become cramped on small devices, use a mobile-specific alternative like a drawer picker instead of letting controls clip or hide.
+- Dense task screens should feel efficient. Promo and empty states can breathe more, but they still must respect first-screen space on phones.
+- Always check responsive polish in terms of:
+  - heading wrap behavior
+  - line-height on broken lines
+  - first-screen content density
+  - card padding
+  - drawer height pressure
+  - chip/button readability
+  - visual balance between sections
+- When a UI issue is systemic, fix shared components first instead of patching each page separately.
 
 ## Continuity Ledger (compaction-safe)
 

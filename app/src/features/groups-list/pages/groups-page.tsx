@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { ArrowDownAZ, CheckCheck, Search, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { ArrowDownAZ, CheckCheck, Users } from 'lucide-react'
 
 import { EmptyState } from '@/components/common/empty-state'
-import { AppLogo } from '@/components/common/app-logo'
 import { MobileShell } from '@/components/common/mobile-shell'
+import { RootPageHeader } from '@/components/common/root-page-header'
 import { Button } from '@/components/ui/button'
 import { GroupCard } from '@/features/dashboard/components/group-card'
 import { useAllGroupsQuery } from '@/lib/queries/use-app-queries'
@@ -37,22 +36,12 @@ export function GroupsPage() {
   return (
     <MobileShell>
       <div className="space-y-6">
-        <header className="space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <AppLogo compact />
-            <Button asChild className="size-12 rounded-full" size="icon" variant="secondary">
-              <Link to="/search" aria-label="Search">
-                <Search className="size-5" />
-              </Link>
-            </Button>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Your shared spaces</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
-              Groups
-            </h1>
-          </div>
-        </header>
+        <RootPageHeader
+          showNotifications
+          showSearch
+          subtitle="Your shared spaces"
+          title="Groups"
+        />
 
         <div className="flex flex-wrap gap-2">
           {[
@@ -62,7 +51,7 @@ export function GroupsPage() {
           ].map((item) => (
             <Button
               key={item.value}
-              className="rounded-full px-4"
+              className="rounded-full px-4 text-sm sm:text-[15px]"
               onClick={() => setStatusFilter(item.value)}
               type="button"
               variant={statusFilter === item.value ? 'default' : 'secondary'}
@@ -72,7 +61,7 @@ export function GroupsPage() {
             </Button>
           ))}
           <Button
-            className="rounded-full px-4"
+            className="rounded-full px-4 text-sm sm:text-[15px]"
             onClick={() => setSortBy((current) => (current === 'attention' ? 'name' : 'attention'))}
             type="button"
             variant="secondary"

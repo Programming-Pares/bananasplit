@@ -26,8 +26,8 @@ export function EmptyState({
         <Icon className="size-5" />
       </div>
       <div className="mt-4 space-y-2">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+        <p className="text-base font-semibold text-foreground sm:text-[1.05rem]">{title}</p>
+        <p className="text-sm leading-6 text-muted-foreground sm:text-[15px]">{description}</p>
       </div>
     </div>
   )

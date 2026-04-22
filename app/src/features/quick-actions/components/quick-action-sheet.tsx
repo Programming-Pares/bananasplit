@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   Coins,
-  Delete,
   HandCoins,
   Plus,
   ReceiptText,
@@ -28,6 +27,11 @@ import {
   useSelectableGroupsQuery,
 } from '@/lib/queries/use-app-queries'
 import { cn } from '@/lib/utils'
+import {
+  CalculatorAmountInput,
+  formatAmountDisplay,
+  parseAmountToCents,
+} from '@/features/quick-actions/components/calculator-amount-input'
 
 type QuickActionSheetProps = {
   isOpen: boolean
@@ -69,56 +73,6 @@ function formatCurrencyFromCents(value: number) {
   return formatCurrency(value / 100)
 }
 
-function parseAmount(raw: string) {
-  if (!raw || raw === '.') {
-    return 0
-  }
-
-  const parsed = Number.parseFloat(raw)
-  return Number.isFinite(parsed) ? parsed : 0
-}
-
-function parseAmountToCents(raw: string) {
-  return Math.round(parseAmount(raw) * 100)
-}
-
-function formatAmountDisplay(raw: string) {
-  return formatCurrency(parseAmount(raw))
-}
-
-function appendAmountInput(current: string, next: string) {
-  if (next === '.') {
-    if (!current) {
-      return '0.'
-    }
-
-    if (current.includes('.')) {
-      return current
-    }
-
-    return `${current}.`
-  }
-
-  if (current === '0') {
-    return next
-  }
-
-  const [whole = '', fractional = ''] = current.split('.')
-  if (current.includes('.') && fractional.length >= 2) {
-    return current
-  }
-
-  if (!current && next === '0') {
-    return '0'
-  }
-
-  if (whole.length >= 7 && !current.includes('.')) {
-    return current
-  }
-
-  return `${current}${next}`
-}
-
 function ActionCard({
   description,
   icon: Icon,
@@ -136,10 +90,10 @@ function ActionCard({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="text-[15px] font-semibold text-foreground sm:text-base">{title}</p>
           <ArrowRight className="size-4 text-muted-foreground" />
         </div>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+        <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">
           {description}
         </p>
       </div>
@@ -161,7 +115,7 @@ function Pill({
   return (
     <button
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors',
+        'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors sm:text-[15px]',
         active
           ? 'border-primary bg-primary text-primary-foreground'
           : 'border-border bg-white/80 text-foreground hover:bg-white',
@@ -188,94 +142,6 @@ function Pill({
   )
 }
 
-function AmountKeypad({
-  onBackspace,
-  onClear,
-  onDigit,
-}: {
-  onBackspace: () => void
-  onClear: () => void
-  onDigit: (value: string) => void
-}) {
-  const keypadRows = [
-    ['1', '2', '3'],
-    ['4', '5', '6'],
-    ['7', '8', '9'],
-    ['.', '0', 'backspace'],
-  ] as const
-
-  return (
-    <div className="grid gap-3">
-      {keypadRows.map((row) => (
-        <div key={row.join('-')} className="grid grid-cols-3 gap-3">
-          {row.map((key) => {
-            if (key === 'backspace') {
-              return (
-                <button
-                  key={key}
-                  className="flex h-16 items-center justify-center rounded-[24px] border border-white/80 bg-white/85 text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)] transition-colors hover:bg-white"
-                  onClick={onBackspace}
-                  type="button"
-                >
-                  <Delete className="size-5" />
-                </button>
-              )
-            }
-
-            return (
-              <button
-                key={key}
-                className="h-16 rounded-[24px] border border-white/80 bg-white/85 text-2xl font-semibold text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)] transition-colors hover:bg-white"
-                onClick={() => onDigit(key)}
-                type="button"
-              >
-                {key}
-              </button>
-            )
-          })}
-        </div>
-      ))}
-
-      <button
-        className="h-14 rounded-[24px] bg-transparent text-sm font-medium text-destructive transition-colors hover:bg-white/40"
-        onClick={onClear}
-        type="button"
-      >
-        Clear
-      </button>
-    </div>
-  )
-}
-
-function AmountStep({
-  amountInput,
-  title,
-  onBackspace,
-  onClear,
-  onDigit,
-}: {
-  amountInput: string
-  title: string
-  onBackspace: () => void
-  onClear: () => void
-  onDigit: (value: string) => void
-}) {
-  return (
-    <div className="space-y-5 px-4 pb-2">
-      <div className="rounded-[28px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] px-5 py-6 text-center shadow-[0_18px_40px_rgba(63,52,25,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          {title}
-        </p>
-        <p className="mt-3 text-5xl font-semibold tracking-tight text-foreground">
-          {formatAmountDisplay(amountInput)}
-        </p>
-      </div>
-
-      <AmountKeypad onBackspace={onBackspace} onClear={onClear} onDigit={onDigit} />
-    </div>
-  )
-}
-
 function ActionChooser({
   onSelectExpense,
   onSelectGroup,
@@ -286,7 +152,7 @@ function ActionChooser({
   onSelectSettlement: () => void
 }) {
   return (
-    <div className="space-y-3 px-4 pb-2">
+    <div className="space-y-2.5 px-3.5 pb-2 sm:space-y-3 sm:px-4">
       <ActionCard
         description="Log who paid, split with members, and keep balances updated."
         icon={ReceiptText}
@@ -311,8 +177,8 @@ function ActionChooser({
 
 function EmptyGroupState() {
   return (
-    <div className="px-4 pb-2">
-      <div className="rounded-[26px] border border-dashed border-border/80 bg-white/60 px-4 py-5 text-sm leading-6 text-muted-foreground">
+    <div className="px-3.5 pb-2 sm:px-4">
+      <div className="rounded-[26px] border border-dashed border-border/80 bg-white/60 px-4 py-4 text-sm leading-6 text-muted-foreground sm:py-5 sm:text-[15px]">
         Create an active group first before adding an expense or settlement.
       </div>
     </div>
@@ -439,7 +305,7 @@ export function QuickActionSheet({
       }}
     >
       <DrawerContent className="mx-auto h-[100svh] max-h-[100svh] max-w-3xl border-none bg-[#fffdf6] data-[vaul-drawer-direction=bottom]:top-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none data-[vaul-drawer-direction=bottom]:rounded-none sm:data-[vaul-drawer-direction=bottom]:rounded-t-[32px]">
-        <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
+        <DrawerHeader className="space-y-1 px-3.5 pb-2 pt-4 text-left sm:px-4 sm:pt-5">
           <DrawerTitle className="text-xl font-semibold">
             {view === 'actions' ? 'Quick actions' : actionTitle}
           </DrawerTitle>
@@ -463,22 +329,22 @@ export function QuickActionSheet({
               onSelectSettlement={() => onSelectSettlement()}
             />
           ) : expenseStep === 'amount' ? (
-            <AmountStep
-              amountInput={amountInput}
-              title={amountPrompt}
-              onBackspace={() => setAmountInput((current) => current.slice(0, -1))}
-              onClear={() => setAmountInput('')}
-              onDigit={(value) => setAmountInput((current) => appendAmountInput(current, value))}
-            />
+            <div className="px-3.5 pb-2 sm:px-4">
+              <CalculatorAmountInput
+                amountInput={amountInput}
+                title={amountPrompt}
+                onChange={setAmountInput}
+              />
+            </div>
           ) : !activeGroup ? (
             <EmptyGroupState />
           ) : actionView === 'expense' ? (
             <>
-              <div className="space-y-5 px-4 pb-2">
+              <div className="space-y-4 px-3.5 pb-2 sm:space-y-5 sm:px-4">
                 <div className="grid gap-4">
                   <div>
                     <label
-                      className="mb-3 block text-sm font-medium text-foreground"
+                      className="mb-3 block text-sm font-medium text-foreground sm:text-[15px]"
                       htmlFor="expense-title"
                     >
                       Title
@@ -493,9 +359,9 @@ export function QuickActionSheet({
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-foreground">Group</p>
+                    <p className="text-sm font-medium text-foreground sm:text-[15px]">Group</p>
                     {isGroupLocked ? (
-                      <div className="rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none">
+                      <div className="rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none sm:text-[15px]">
                         {activeGroup.name}
                       </div>
                     ) : selectableGroups.length > 0 ? (
@@ -511,14 +377,14 @@ export function QuickActionSheet({
                         ))}
                       </div>
                     ) : (
-                      <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-3 text-sm text-muted-foreground">
+                      <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-3 text-sm text-muted-foreground sm:text-[15px]">
                         No active groups available.
                       </div>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-foreground">Paid by</p>
+                    <p className="text-sm font-medium text-foreground sm:text-[15px]">Paid by</p>
                     <div className="flex flex-wrap gap-2">
                       {members.map((member, index) => (
                         <Pill
@@ -535,25 +401,25 @@ export function QuickActionSheet({
 
                   <div className="space-y-2">
                     <div className="grid grid-cols-[minmax(0,9fr)_minmax(3.5rem,1fr)] gap-2">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-foreground">Split with</p>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <p className="text-sm font-medium text-foreground sm:text-[15px]">Split with</p>
                         <div className="flex flex-wrap gap-2">
                           <button
-                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white"
+                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white sm:text-[15px]"
                             onClick={() => setExpenseParticipantIds(members.map((member) => member.id))}
                             type="button"
                           >
                             All members
                           </button>
                           <button
-                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white"
+                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white sm:text-[15px]"
                             onClick={() => setExpenseParticipantIds(expensePaidById ? [expensePaidById] : [])}
                             type="button"
                           >
                             Only payer
                           </button>
                           <button
-                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white"
+                            className="rounded-full border border-border bg-white/80 px-3 py-2 text-sm text-foreground transition-colors hover:bg-white sm:text-[15px]"
                             onClick={() =>
                               setExpenseParticipantIds(
                                 members
@@ -606,10 +472,10 @@ export function QuickActionSheet({
                         </div>
                       </div>
 
-                      <div className="flex items-start justify-end pt-7">
+                      <div className="flex items-start justify-end pt-6 sm:pt-7">
                         <button
                           className={cn(
-                            'h-10 w-full rounded-full border text-sm font-medium transition-colors',
+                            'h-10 w-full rounded-full border text-sm font-medium transition-colors sm:text-[15px]',
                             allSelected
                               ? 'border-primary bg-primary text-primary-foreground'
                               : 'border-border bg-white/80 text-foreground hover:bg-white',
@@ -625,9 +491,9 @@ export function QuickActionSheet({
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-foreground">Adjustments</p>
+                      <p className="text-sm font-medium text-foreground sm:text-[15px]">Adjustments</p>
                       <button
                         className="flex size-9 items-center justify-center rounded-full border border-white/80 bg-white/85 text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)] transition-colors hover:bg-white"
                         onClick={() => setIsAdjustmentOpen(true)}
@@ -641,7 +507,7 @@ export function QuickActionSheet({
                       <div className="space-y-2">
                         {expenseAdjustments.map((adjustment) => (
                           <div
-                            className="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none"
+                            className="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none sm:text-[15px]"
                             key={adjustment.id}
                           >
                             <span className="font-medium">
@@ -654,24 +520,24 @@ export function QuickActionSheet({
                         ))}
                       </div>
                     ) : (
-                      <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-3 text-sm text-muted-foreground">
+                      <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-3 text-sm text-muted-foreground sm:text-[15px]">
                         No adjustments yet.
                       </div>
                     )}
                   </div>
 
-                  <div className="rounded-[26px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] p-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <div className="rounded-[26px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] p-3.5 sm:p-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground sm:text-[15px]">
                       <Coins className="size-4 text-[var(--color-banana-900)]" />
                       Preview
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                       {expenseParticipantIds.length} member
                       {expenseParticipantIds.length === 1 ? '' : 's'} selected. Current amount is{' '}
                       {formatAmountDisplay(amountInput)}.
                     </p>
                     {totalAdjustments > amountCents ? (
-                      <p className="mt-2 text-sm text-destructive">
+                      <p className="mt-2 text-sm text-destructive sm:text-[15px]">
                         Adjustments cannot exceed the total amount.
                       </p>
                     ) : null}
@@ -695,7 +561,7 @@ export function QuickActionSheet({
                 }}
               >
                 <DrawerContent className="mx-auto h-[100svh] max-h-[100svh] max-w-3xl border-none bg-[#fffdf6] data-[vaul-drawer-direction=bottom]:top-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none data-[vaul-drawer-direction=bottom]:rounded-none sm:data-[vaul-drawer-direction=bottom]:rounded-t-[32px]">
-                  <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
+                  <DrawerHeader className="space-y-1 px-3.5 pb-2 pt-4 text-left sm:px-4 sm:pt-5">
                     <DrawerTitle className="text-xl font-semibold">Adjustments</DrawerTitle>
                     <DrawerDescription>
                       {adjustmentAmountInput
@@ -704,10 +570,10 @@ export function QuickActionSheet({
                     </DrawerDescription>
                   </DrawerHeader>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2">
-                    <div className="space-y-5">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-foreground">User selection</p>
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3.5 pb-2 sm:px-4">
+                    <div className="space-y-4 sm:space-y-5">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <p className="text-sm font-medium text-foreground sm:text-[15px]">User selection</p>
                         <div className="flex flex-wrap gap-2">
                           {members.map((member, index) => (
                             <Pill
@@ -722,25 +588,10 @@ export function QuickActionSheet({
                         </div>
                       </div>
 
-                      <div className="rounded-[28px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] px-5 py-6 text-center shadow-[0_18px_40px_rgba(63,52,25,0.08)]">
-                        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                          Adjustment amount
-                        </p>
-                        <p className="mt-3 text-5xl font-semibold tracking-tight text-foreground">
-                          {formatAmountDisplay(adjustmentAmountInput)}
-                        </p>
-                      </div>
-
-                      <AmountKeypad
-                        onBackspace={() =>
-                          setAdjustmentAmountInput((current) => current.slice(0, -1))
-                        }
-                        onClear={() => setAdjustmentAmountInput('')}
-                        onDigit={(value) =>
-                          setAdjustmentAmountInput((current) =>
-                            appendAmountInput(current, value),
-                          )
-                        }
+                      <CalculatorAmountInput
+                        amountInput={adjustmentAmountInput}
+                        title="Adjustment amount"
+                        onChange={setAdjustmentAmountInput}
                       />
                     </div>
                   </div>
@@ -786,12 +637,12 @@ export function QuickActionSheet({
               </Drawer>
             </>
           ) : (
-            <div className="space-y-5 px-4 pb-2">
+            <div className="space-y-4 px-3.5 pb-2 sm:space-y-5 sm:px-4">
               <div className="grid gap-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Group</p>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <p className="text-sm font-medium text-foreground sm:text-[15px]">Group</p>
                   {isGroupLocked ? (
-                    <div className="rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none">
+                    <div className="rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none sm:text-[15px]">
                       {activeGroup.name}
                     </div>
                   ) : selectableGroups.length > 0 ? (
@@ -807,14 +658,14 @@ export function QuickActionSheet({
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-3 text-sm text-muted-foreground">
+                    <div className="rounded-[24px] border border-dashed border-border/80 bg-white/50 px-4 py-3 text-sm text-muted-foreground sm:text-[15px]">
                       No active groups available.
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Paid by</p>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <p className="text-sm font-medium text-foreground sm:text-[15px]">Paid by</p>
                   <div className="flex flex-wrap gap-2">
                     {members.map((member, index) => (
                       <Pill
@@ -829,8 +680,8 @@ export function QuickActionSheet({
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Received by</p>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <p className="text-sm font-medium text-foreground sm:text-[15px]">Received by</p>
                   <div className="flex flex-wrap gap-2">
                     {members.map((member, index) => (
                       <Pill
@@ -847,7 +698,7 @@ export function QuickActionSheet({
 
                 <div>
                   <label
-                    className="mb-3 block text-sm font-medium text-foreground"
+                    className="mb-3 block text-sm font-medium text-foreground sm:text-[15px]"
                     htmlFor="settlement-note"
                   >
                     Note
@@ -861,18 +712,18 @@ export function QuickActionSheet({
                   />
                 </div>
 
-                <div className="rounded-[26px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] p-4">
-                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <div className="rounded-[26px] bg-[linear-gradient(160deg,#fff7d3,#fffef8)] p-3.5 sm:p-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground sm:text-[15px]">
                     <Coins className="size-4 text-[var(--color-banana-900)]" />
                     Preview
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                     {memberNameMap.get(settlementPaidById) ?? 'Unknown'} pays{' '}
                     {memberNameMap.get(settlementReceivedById) ?? 'Unknown'}{' '}
                     {formatAmountDisplay(amountInput)}.
                   </p>
                   {!hasValidSettlement ? (
-                    <p className="mt-2 text-sm text-destructive">
+                    <p className="mt-2 text-sm text-destructive sm:text-[15px]">
                       Paid by and received by must be different.
                     </p>
                   ) : null}
@@ -882,7 +733,7 @@ export function QuickActionSheet({
           )}
         </div>
 
-        <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
+        <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-3.5 pb-5 pt-3.5 sm:px-4 sm:pb-6 sm:pt-4">
           {view === 'actions' ? (
             <Button className="h-12 rounded-2xl" onClick={() => onSelectExpense()} type="button">
               <Plus className="size-4" />
