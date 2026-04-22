@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
-  ChevronRight,
   CloudOff,
   Download,
   LogOut,
@@ -19,16 +18,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
-import { ProUpgradeCard } from '@/features/pro/components/pro-upgrade-card'
 import { Separator } from '@/components/ui/separator'
+import { ProUpgradeCard } from '@/features/pro/components/pro-upgrade-card'
+import { CurrencyDrawer } from '@/features/settings/pages/settings-page/currency-drawer'
+import { ResetDataDrawer } from '@/features/settings/pages/settings-page/reset-data-drawer'
+import { SettingsRow } from '@/features/settings/pages/settings-page/settings-row'
 import {
   useResetLocalDataMutation,
   useSettingsQuery,
@@ -36,59 +30,27 @@ import {
   useUpdateCurrencyMutation,
 } from '@/lib/queries/use-app-queries'
 
-function SettingsRow({
-  icon: Icon,
-  label,
-  onClick,
-  showChevron = true,
-  value,
-}: {
-  icon: typeof Wallet
-  label: string
-  onClick?: () => void
-  showChevron?: boolean
-  value: string
-}) {
-  return (
-    <button
-      className="flex w-full items-center justify-between gap-3 py-3 text-left"
-      onClick={onClick}
-      type="button"
-    >
-      <div className="flex items-center gap-3">
-        <div className="rounded-2xl bg-secondary p-2 text-secondary-foreground">
-          <Icon className="size-4" />
-        </div>
-        <span className="text-sm text-foreground sm:text-[15px]">{label}</span>
-      </div>
-      <div className="flex items-center gap-2 text-sm text-muted-foreground sm:text-[15px]">
-        <span>{value}</span>
-        {showChevron ? <ChevronRight className="size-4" /> : null}
-      </div>
-    </button>
-  )
-}
-
 export function SettingsPage() {
   const { data } = useSettingsQuery()
+
+  if (!data) {
+    return null
+  }
+
+  return <SettingsPageContent key={data.deviceId} data={data} />
+}
+
+function SettingsPageContent({
+  data,
+}: {
+  data: NonNullable<ReturnType<typeof useSettingsQuery>['data']>
+}) {
   const updateAuthStateMutation = useUpdateAuthStateMutation()
   const updateCurrencyMutation = useUpdateCurrencyMutation()
   const resetLocalDataMutation = useResetLocalDataMutation()
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [isResetOpen, setIsResetOpen] = useState(false)
-  const [selectedCurrency, setSelectedCurrency] = useState('PHP')
-
-  useEffect(() => {
-    if (!data) {
-      return
-    }
-
-    setSelectedCurrency(data.currency)
-  }, [data])
-
-  if (!data) {
-    return null
-  }
+  const [selectedCurrency, setSelectedCurrency] = useState(data.currency)
 
   const accountName =
     data.authProvider === 'google' && data.isSignedIn
@@ -128,9 +90,6 @@ export function SettingsPage() {
                     </p>
                   </div>
                   <p className="truncate text-sm leading-6 text-muted-foreground sm:text-[15px]">{accountEmail}</p>
-                </div>
-                <div className="rounded-2xl bg-white/80 p-2 text-[var(--color-banana-900)]">
-                  <ChevronRight className="size-4" />
                 </div>
               </div>
             </Link>
@@ -306,107 +265,35 @@ export function SettingsPage() {
         </Card>
       </div>
 
-      <Drawer
-        direction="bottom"
+      <CurrencyDrawer
+        currentCurrency={data.currency}
+        isPending={updateCurrencyMutation.isPending}
         open={isCurrencyOpen}
+        selectedCurrency={selectedCurrency}
+        setSelectedCurrency={setSelectedCurrency}
         onOpenChange={(open) => {
           setIsCurrencyOpen(open)
           if (open) {
             setSelectedCurrency(data.currency)
           }
         }}
-      >
-        <DrawerContent className="mx-auto max-w-3xl border-none bg-[#fffdf6]">
-          <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
-            <DrawerTitle className="text-xl font-semibold">Currency</DrawerTitle>
-            <DrawerDescription>Choose the local currency used by this device.</DrawerDescription>
-          </DrawerHeader>
+        onSave={async () => {
+          await updateCurrencyMutation.mutateAsync({
+            currency: selectedCurrency,
+          })
+          setIsCurrencyOpen(false)
+        }}
+      />
 
-          <div className="space-y-3 px-4 pb-2">
-            <button
-              className={`flex w-full items-center justify-between rounded-[24px] border px-4 py-4 text-left transition-colors ${
-                selectedCurrency === 'PHP'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-white/80 bg-white/85 text-foreground'
-              }`}
-              onClick={() => setSelectedCurrency('PHP')}
-              type="button"
-            >
-              <div>
-                <p className="text-sm font-medium sm:text-[15px]">Philippine Peso</p>
-                <p className={`mt-1 text-sm sm:text-[15px] ${selectedCurrency === 'PHP' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                  PHP · ₱
-                </p>
-              </div>
-              <span className="text-sm font-medium sm:text-[15px]">Available</span>
-            </button>
-          </div>
-
-          <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
-            <Button
-              className="h-12 rounded-2xl"
-              disabled={selectedCurrency === data.currency || updateCurrencyMutation.isPending}
-              onClick={async () => {
-                await updateCurrencyMutation.mutateAsync({
-                  currency: selectedCurrency,
-                })
-                setIsCurrencyOpen(false)
-              }}
-              type="button"
-            >
-              Save currency
-            </Button>
-            <Button
-              className="h-12 rounded-2xl"
-              onClick={() => setIsCurrencyOpen(false)}
-              type="button"
-              variant="secondary"
-            >
-              Close
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
-      <Drawer direction="bottom" open={isResetOpen} onOpenChange={setIsResetOpen}>
-        <DrawerContent className="mx-auto max-w-3xl border-none bg-[#fffdf6]">
-          <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
-            <DrawerTitle className="text-xl font-semibold">Reset local data</DrawerTitle>
-            <DrawerDescription>
-              This clears groups, expenses, settlements, activity, and local account state on this device.
-            </DrawerDescription>
-          </DrawerHeader>
-
-          <div className="space-y-3 px-4 pb-2">
-            <div className="rounded-[24px] bg-white/75 px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
-              After reset, the app will keep only the minimum local bootstrap profile needed to run again.
-            </div>
-          </div>
-
-          <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
-            <Button
-              className="h-12 rounded-2xl"
-              disabled={resetLocalDataMutation.isPending}
-              onClick={async () => {
-                await resetLocalDataMutation.mutateAsync()
-                setIsResetOpen(false)
-              }}
-              type="button"
-              variant="destructive"
-            >
-              Reset local data
-            </Button>
-            <Button
-              className="h-12 rounded-2xl"
-              onClick={() => setIsResetOpen(false)}
-              type="button"
-              variant="secondary"
-            >
-              Cancel
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      <ResetDataDrawer
+        isPending={resetLocalDataMutation.isPending}
+        open={isResetOpen}
+        onConfirm={async () => {
+          await resetLocalDataMutation.mutateAsync()
+          setIsResetOpen(false)
+        }}
+        onOpenChange={setIsResetOpen}
+      />
     </MobileShell>
   )
 }

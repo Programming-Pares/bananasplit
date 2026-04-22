@@ -11,11 +11,13 @@
 - 2026-04-21 [TOOL] `.agents/AGENTS.md` now points continuity operations to `.agents/CONTINUITY.md`.
 
 ## Done (recent)
+- 2026-04-22 [CODE] Refactored `app/src` for AGENTS compliance: removed React state-sync effect violations, split oversized pages/components/repository/query files under 300 LOC, and preserved existing `use-app-queries` / repository public entrypoints.
+- 2026-04-22 [TOOL] `npm run lint` passed in `app/` after the AGENTS compliance refactor.
+- 2026-04-22 [TOOL] `npm run build` passed in `app/` after the AGENTS compliance refactor; Vite still warns that the main JS chunk exceeds 500 kB.
+- 2026-04-22 [CODE] Updated `.codex/hooks.json` so `SessionStart` prints `.agents/AGENTS.md` and `.agents/CONTINUITY.md` into new Codex sessions automatically.
 - 2026-04-21 [CODE] Scaffolded `app/` with Vite, React, TypeScript, Tailwind v4, TanStack Query, React Router, and `shadcn/ui`.
 - 2026-04-21 [CODE] Implemented mobile-first MVP wireframe routes for onboarding, dashboard, group details, expense details, settings, and not-found.
 - 2026-04-21 [CODE] Added BananaSplit yellow theme tokens, shared mobile shell, bottom navigation, placeholder logo placement, and mock local-query data flow.
-- 2026-04-21 [TOOL] `npm run lint` passed in `app/`.
-- 2026-04-21 [TOOL] `npm run build` passed in `app/`.
 - 2026-04-21 [CODE] Normalized `.agents` rules and continuity docs from old-project state to `bananasplit`-specific guidance.
 
 ## Decisions
@@ -23,12 +25,13 @@
 - 2026-04-21 [CODE] D002 ACTIVE: build `app/` offline-first with local persistence as source of truth; backend sync/auth later.
 - 2026-04-21 [CODE] D003 ACTIVE: frontend stack direction is React + Vite + TypeScript + Tailwind + `shadcn/ui` + TanStack Query.
 - 2026-04-21 [CODE] D004 ACTIVE: use mock repository/query layer now so UI routes are ready before real local database is selected.
+- 2026-04-22 [CODE] D005 ACTIVE: rely on repo-local Codex `SessionStart` hooks to preload `.agents/AGENTS.md` and `.agents/CONTINUITY.md` for new sessions.
 
 ## Now
-- 2026-04-21 [USER] User asked to start coding the `app/` and implement mobile-first wireframe screens.
+- 2026-04-22 [USER] User asked for a real AGENTS compliance pass on `app/`, then requested remediation.
 
 ## Next
-- 2026-04-21 [ASSUMPTION] Next likely step is choosing the real offline local database and replacing mock repository data behind the same query/repository boundaries.
+- 2026-04-22 [ASSUMPTION] Next likely step is product/runtime hardening: reduce the large JS bundle warning and continue replacing mock repository behavior with a real offline-first persistence strategy behind the same query/repository boundaries.
 
 ## Open Questions
 - 2026-04-21 [UNCONFIRMED] Exact local database choice for offline-first app still not locked.

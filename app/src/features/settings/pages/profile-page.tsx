@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, PencilLine, ShieldCheck } from 'lucide-react'
 
@@ -18,23 +18,23 @@ import {
 
 export function ProfilePage() {
   const { data } = useSettingsQuery()
-  const updateProfileMutation = useUpdateProfileMutation()
-  const updateAuthStateMutation = useUpdateAuthStateMutation()
-  const [userName, setUserName] = useState('')
-  const [accountEmail, setAccountEmail] = useState('')
-
-  useEffect(() => {
-    if (!data) {
-      return
-    }
-
-    setUserName(data.userName)
-    setAccountEmail(data.accountEmail ?? '')
-  }, [data])
 
   if (!data) {
     return null
   }
+
+  return <ProfilePageContent key={data.currentUserMemberId} data={data} />
+}
+
+function ProfilePageContent({
+  data,
+}: {
+  data: NonNullable<ReturnType<typeof useSettingsQuery>['data']>
+}) {
+  const updateProfileMutation = useUpdateProfileMutation()
+  const updateAuthStateMutation = useUpdateAuthStateMutation()
+  const [userName, setUserName] = useState(data.userName)
+  const [accountEmail, setAccountEmail] = useState(data.accountEmail ?? '')
 
   const initials = (data.userName || 'Y')
     .split(' ')

@@ -1,7 +1,7 @@
 import { Home, Plus, ReceiptText, Settings, Users } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { useQuickActions } from '@/app/providers/quick-action-provider'
+import { useQuickActions } from '@/app/providers/quick-action-context'
 import { cn } from '@/lib/utils'
 
 const leftNavItems = [

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Bell, Check, ChevronDown, Search, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { useQuickActions } from '@/app/providers/quick-action-provider'
+import { useQuickActions } from '@/app/providers/quick-action-context'
 import activeBanner from '@/assets/dashboard-banner-active-state.png'
 import emptyStateBanner from '@/assets/dashboard-banner-empty-state.png'
 import { EmptyState } from '@/components/common/empty-state'
@@ -28,14 +28,18 @@ export function DashboardPage() {
   const { data } = useDashboardQuery()
   const { openExpenseSheet } = useQuickActions()
   const [selectedGroupId, setSelectedGroupId] = useState(() => window.localStorage.getItem('dashboard:selected-group-id') ?? '')
-  const dashboardGroups = data?.groups ?? []
+  const dashboardGroups = data?.groups
   const activeGroups = useMemo(
-    () => dashboardGroups.filter((group) => group.isActive),
+    () => (dashboardGroups ?? []).filter((group) => group.isActive),
     [dashboardGroups],
   )
 
-  const hasGroups = dashboardGroups.length > 0
-  const attentionGroups = dashboardGroups.filter((group) => group.openBalanceCount > 0)
+  const effectiveSelectedGroupId =
+    selectedGroupId.length > 0 && !activeGroups.some((group) => group.id === selectedGroupId)
+      ? ''
+      : selectedGroupId
+  const hasGroups = (dashboardGroups?.length ?? 0) > 0
+  const attentionGroups = (dashboardGroups ?? []).filter((group) => group.openBalanceCount > 0)
   const bannerImage = hasGroups ? activeBanner : emptyStateBanner
   const bannerHeading = hasGroups
     ? 'Keep every shared expense clear'
@@ -48,19 +52,14 @@ export function DashboardPage() {
     name: group.name,
   }))]
   const selectedGroupName =
-    groupFilterOptions.find((group) => group.id === selectedGroupId)?.name ?? 'All groups'
-  const selectedSummary = selectedGroupId
-    ? data?.summaryByGroup?.[selectedGroupId] ?? data?.summary
+    groupFilterOptions.find((group) => group.id === effectiveSelectedGroupId)?.name ?? 'All groups'
+  const selectedSummary = effectiveSelectedGroupId
+    ? data?.summaryByGroup?.[effectiveSelectedGroupId]
     : data?.summary
 
   useEffect(() => {
-    if (selectedGroupId.length > 0 && !activeGroups.some((group) => group.id === selectedGroupId)) {
-      setSelectedGroupId('')
-      return
-    }
-
-    window.localStorage.setItem('dashboard:selected-group-id', selectedGroupId)
-  }, [activeGroups, selectedGroupId])
+    window.localStorage.setItem('dashboard:selected-group-id', effectiveSelectedGroupId)
+  }, [effectiveSelectedGroupId])
 
   if (!data || !selectedSummary) {
     return null
@@ -115,18 +114,16 @@ export function DashboardPage() {
                 </DrawerHeader>
                 <div className="space-y-2 px-4 pb-6">
                   {groupFilterOptions.map((group) => {
-                    const isActive = selectedGroupId === group.id
-
                     return (
                       <DrawerClose key={`drawer-${group.id || 'all-groups'}`} asChild>
                         <Button
                           className="h-12 w-full justify-between rounded-2xl px-4"
                           onClick={() => setSelectedGroupId(group.id)}
                           type="button"
-                          variant={isActive ? 'default' : 'secondary'}
+                          variant={effectiveSelectedGroupId === group.id ? 'default' : 'secondary'}
                         >
                           <span className="truncate">{group.name}</span>
-                          {isActive ? <Check className="size-4 shrink-0" /> : null}
+                          {effectiveSelectedGroupId === group.id ? <Check className="size-4 shrink-0" /> : null}
                         </Button>
                       </DrawerClose>
                     )
@@ -136,7 +133,7 @@ export function DashboardPage() {
             </Drawer>
             <div className="hidden gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex">
               {groupFilterOptions.map((group) => {
-                const isActive = selectedGroupId === group.id
+                const isActive = effectiveSelectedGroupId === group.id
 
                 return (
                   <Button

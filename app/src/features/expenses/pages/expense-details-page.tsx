@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { PencilLine, Trash2 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -29,32 +29,30 @@ function formatAmountInput(amount: string) {
 }
 
 export function ExpenseDetailsPage() {
-  const navigate = useNavigate()
   const { expenseId = '' } = useParams()
   const { data: expense } = useExpenseQuery(expenseId)
-  const updateExpenseMutation = useUpdateExpenseMutation()
-  const deleteExpenseMutation = useDeleteExpenseMutation()
-  const [isEditOpen, setIsEditOpen] = useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [amountInput, setAmountInput] = useState('')
-  const [paidByMemberId, setPaidByMemberId] = useState('')
-  const [participantIds, setParticipantIds] = useState<string[]>([])
-
-  useEffect(() => {
-    if (!expense) {
-      return
-    }
-
-    setTitle(expense.title)
-    setAmountInput(formatAmountInput(expense.amount))
-    setPaidByMemberId(expense.paidByMemberId)
-    setParticipantIds(expense.participantIds)
-  }, [expense])
 
   if (!expense) {
     return null
   }
+
+  return <ExpenseDetailsPageContent key={expense.expenseId} expense={expense} />
+}
+
+function ExpenseDetailsPageContent({
+  expense,
+}: {
+  expense: NonNullable<ReturnType<typeof useExpenseQuery>['data']>
+}) {
+  const navigate = useNavigate()
+  const updateExpenseMutation = useUpdateExpenseMutation()
+  const deleteExpenseMutation = useDeleteExpenseMutation()
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [title, setTitle] = useState(expense.title)
+  const [amountInput, setAmountInput] = useState(formatAmountInput(expense.amount))
+  const [paidByMemberId, setPaidByMemberId] = useState(expense.paidByMemberId)
+  const [participantIds, setParticipantIds] = useState<string[]>(expense.participantIds)
 
   const canSave =
     title.trim().length > 0 &&

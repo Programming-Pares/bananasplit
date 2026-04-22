@@ -1,28 +1,17 @@
+import { type PropsWithChildren, useMemo, useState } from 'react'
+
 import {
-  createContext,
-  type PropsWithChildren,
-  useContext,
-  useMemo,
-  useState,
-} from 'react'
-
+  QuickActionContext,
+  type QuickActionContextValue,
+  type SheetView,
+} from '@/app/providers/quick-action-context'
 import { QuickActionSheet } from '@/features/quick-actions/components/quick-action-sheet'
-
-type SheetView = 'actions' | 'expense' | 'settlement'
-
-type QuickActionContextValue = {
-  closeSheet: () => void
-  openActionSheet: () => void
-  openExpenseSheet: (groupId?: string) => void
-  openSettlementSheet: (groupId?: string) => void
-}
-
-const QuickActionContext = createContext<QuickActionContextValue | null>(null)
 
 export function QuickActionProvider({ children }: PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false)
   const [view, setView] = useState<SheetView>('actions')
   const [groupId, setGroupId] = useState<string | null>(null)
+  const [sheetInstance, setSheetInstance] = useState(0)
 
   const value = useMemo<QuickActionContextValue>(
     () => ({
@@ -34,16 +23,19 @@ export function QuickActionProvider({ children }: PropsWithChildren) {
       openActionSheet: () => {
         setGroupId(null)
         setView('actions')
+        setSheetInstance((current) => current + 1)
         setIsOpen(true)
       },
       openExpenseSheet: (nextGroupId) => {
         setGroupId(nextGroupId ?? null)
         setView('expense')
+        setSheetInstance((current) => current + 1)
         setIsOpen(true)
       },
       openSettlementSheet: (nextGroupId) => {
         setGroupId(nextGroupId ?? null)
         setView('settlement')
+        setSheetInstance((current) => current + 1)
         setIsOpen(true)
       },
     }),
@@ -54,6 +46,7 @@ export function QuickActionProvider({ children }: PropsWithChildren) {
     <QuickActionContext.Provider value={value}>
       {children}
       <QuickActionSheet
+        key={`${sheetInstance}-${view}-${groupId ?? 'none'}`}
         isOpen={isOpen}
         onClose={value.closeSheet}
         onOpenChange={setIsOpen}
@@ -64,14 +57,4 @@ export function QuickActionProvider({ children }: PropsWithChildren) {
       />
     </QuickActionContext.Provider>
   )
-}
-
-export function useQuickActions() {
-  const context = useContext(QuickActionContext)
-
-  if (!context) {
-    throw new Error('useQuickActions must be used within QuickActionProvider')
-  }
-
-  return context
 }
