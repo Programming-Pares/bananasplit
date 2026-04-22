@@ -95,8 +95,36 @@ async function getSettingsRecord() {
 
 async function ensureAppInitialized() {
   const existingSettings = await appDb.settings.get('settings')
+  const defaultUserName = 'Sebas'
 
   if (existingSettings) {
+    if (existingSettings.userName === 'You') {
+      const currentUser = await appDb.members.get(existingSettings.currentUserMemberId)
+      const nextUpdatedAt = Date.now()
+
+      await appDb.transaction('rw', [appDb.members, appDb.settings], async () => {
+        await appDb.settings.put({
+          ...existingSettings,
+          updatedAt: nextUpdatedAt,
+          userName: defaultUserName,
+        })
+
+        if (currentUser && currentUser.name === 'You') {
+          await appDb.members.put({
+            ...currentUser,
+            name: defaultUserName,
+            updatedAt: nextUpdatedAt,
+          })
+        }
+      })
+
+      return {
+        ...existingSettings,
+        updatedAt: nextUpdatedAt,
+        userName: defaultUserName,
+      }
+    }
+
     return existingSettings
   }
 
@@ -107,7 +135,7 @@ async function ensureAppInitialized() {
     deletedAt: null,
     email: null,
     id: currentUserMemberId,
-    name: 'You',
+    name: defaultUserName,
     source: 'system',
     syncStatus: 'local',
     updatedAt: now,
@@ -122,7 +150,7 @@ async function ensureAppInitialized() {
     isSignedIn: false,
     lastSyncCursor: null,
     updatedAt: now,
-    userName: 'You',
+    userName: defaultUserName,
   }
 
   await appDb.transaction('rw', [appDb.members, appDb.settings], async () => {
@@ -136,6 +164,29 @@ async function ensureAppInitialized() {
   })
 
   return settings
+}
+
+async function getCurrentUserContext() {
+  const settings = await getSettingsRecord()
+
+  return {
+    currentUserMemberId: settings?.currentUserMemberId ?? 'member-you',
+    currentUserName: settings?.userName ?? 'Sebas',
+  }
+}
+
+async function getDisplayMemberNameMap(groupId: string) {
+  const [acceptedMembers, { currentUserMemberId }] = await Promise.all([
+    getAcceptedGroupMembers(groupId),
+    getCurrentUserContext(),
+  ])
+
+  return new Map(
+    acceptedMembers.map(({ member }) => [
+      member.id,
+      member.id === currentUserMemberId ? 'You' : member.name,
+    ]),
+  )
 }
 
 async function getAcceptedGroupMembers(groupId: string) {
@@ -196,7 +247,7 @@ async function getGroupMemberNameMap(groupId: string) {
 }
 
 async function getGroupBalances(groupId: string) {
-  const memberNameMap = await getGroupMemberNameMap(groupId)
+  const memberNameMap = await getDisplayMemberNameMap(groupId)
   const memberIds = [...memberNameMap.keys()]
   const expenses = await appDb.expenses
     .where('groupId')
@@ -387,10 +438,53 @@ function getUserNetLabel({
   return `You owed ${formatCurrencyFromCents(owesCents - owedCents)}`
 }
 
+function buildDashboardSummary({
+  attention,
+  balances,
+  currentUserMemberId,
+  expenseCount,
+  totalExpenseAmountCents,
+  scopeCount,
+  scopeLabel,
+}: {
+  attention: string
+  balances: Array<{
+    amountCents: number
+    fromId: string
+    fromName: string
+    toId: string
+    toName: string
+  }>
+  currentUserMemberId: string
+  expenseCount: number
+  totalExpenseAmountCents: number
+  scopeCount: number
+  scopeLabel: string
+}) {
+  const owedCents = balances
+    .filter((item) => item.toId === currentUserMemberId)
+    .reduce((sum, item) => sum + item.amountCents, 0)
+  const owesCents = balances
+    .filter((item) => item.fromId === currentUserMemberId)
+    .reduce((sum, item) => sum + item.amountCents, 0)
+
+  return {
+    attention,
+    net: getUserNetLabel({ owedCents, owesCents }),
+    openBalances: `${balances.length} open balance${balances.length === 1 ? '' : 's'}`,
+    owed: formatCurrencyFromCents(owedCents),
+    owes: formatCurrencyFromCents(owesCents),
+    scopeCountLabel: `${scopeCount} ${scopeLabel}${scopeCount === 1 ? '' : 's'}`,
+    scopeLabel,
+    totalExpenseCountLabel: `${expenseCount} expense${expenseCount === 1 ? '' : 's'} recorded`,
+    totalSpent: formatCurrencyFromCents(totalExpenseAmountCents),
+  }
+}
+
 async function getGroupCardData(group: GroupRecord) {
   const balances = await getGroupBalances(group.id)
   const acceptedMembers = await getAcceptedGroupMembers(group.id)
-  const currentUserMemberId = (await getSettingsRecord())?.currentUserMemberId ?? 'member-you'
+  const { currentUserMemberId } = await getCurrentUserContext()
   const owedCents = balances
     .filter((item) => item.toId === currentUserMemberId)
     .reduce((sum, item) => sum + item.amountCents, 0)
@@ -562,28 +656,60 @@ export async function getDashboardData() {
   ])
   const groupCards = await Promise.all(groups.map((group) => getGroupCardData(group)))
   const groupsNeedingAttention = groupCards.filter((group) => group.openBalanceCount > 0).length
-  const currentUserMemberId = settings?.currentUserMemberId ?? 'member-you'
+  const { currentUserMemberId } = await getCurrentUserContext()
 
   const balancesPerGroup = await Promise.all(groups.map((group) => getGroupBalances(group.id)))
+  const groupMemberCounts = await Promise.all(
+    groups.map((group) => getAcceptedGroupMembers(group.id).then((members) => members.length)),
+  )
+  const expensesPerGroup = await Promise.all(
+    groups.map((group) =>
+      appDb.expenses
+        .where('groupId')
+        .equals(group.id)
+        .filter((item) => item.deletedAt === null)
+        .toArray(),
+    ),
+  )
   const allBalances = balancesPerGroup.flat()
-  const owedCents = allBalances
-    .filter((item) => item.toId === currentUserMemberId)
-    .reduce((sum, item) => sum + item.amountCents, 0)
-  const owesCents = allBalances
-    .filter((item) => item.fromId === currentUserMemberId)
-    .reduce((sum, item) => sum + item.amountCents, 0)
+  const allExpenses = expensesPerGroup.flat()
+  const summaryByGroup = Object.fromEntries(
+    groups.map((group, index) => {
+      const balances = balancesPerGroup[index]
+      const topBalance = balances[0]
+      const expenses = expensesPerGroup[index]
+
+      return [
+        group.id,
+        buildDashboardSummary({
+          attention: topBalance
+            ? `${topBalance.fromName} owed ${formatCurrencyFromCents(topBalance.amountCents)} to ${topBalance.toName}`
+            : 'No open balances',
+          balances,
+          currentUserMemberId,
+          expenseCount: expenses.length,
+          scopeCount: groupMemberCounts[index],
+          scopeLabel: 'member',
+          totalExpenseAmountCents: expenses.reduce((sum, item) => sum + item.amountCents, 0),
+        }),
+      ]
+    }),
+  )
 
   return {
     groups: groupCards.sort((left, right) => right.openBalanceCount - left.openBalanceCount),
     unreadNotificationCount,
     recentActivity,
-    summary: {
+    summary: buildDashboardSummary({
       attention: `${groupsNeedingAttention} group${groupsNeedingAttention === 1 ? '' : 's'} need attention`,
-      net: getUserNetLabel({ owedCents, owesCents }),
-      openBalances: `${allBalances.length} open balance${allBalances.length === 1 ? '' : 's'}`,
-      owed: formatCurrencyFromCents(owedCents),
-      owes: formatCurrencyFromCents(owesCents),
-    },
+      balances: allBalances,
+      currentUserMemberId,
+      expenseCount: allExpenses.length,
+      scopeCount: groups.length,
+      scopeLabel: 'active group',
+      totalExpenseAmountCents: allExpenses.reduce((sum, item) => sum + item.amountCents, 0),
+    }),
+    summaryByGroup,
     userName: settings?.userName ?? 'Sebas',
   }
 }
@@ -716,7 +842,7 @@ export async function getGroupById(groupId: string) {
       .sortBy('createdAt'),
   ])
 
-  const memberNameMap = new Map(acceptedMembers.map(({ member }) => [member.id, member.name]))
+  const memberNameMap = await getDisplayMemberNameMap(groupId)
   const expenseItems = await Promise.all(
     expenses
       .sort((left, right) => right.createdAt - left.createdAt)
@@ -798,7 +924,10 @@ export async function getExpenseById(expenseId: string) {
   const memberIds = [...new Set([expense.paidByMemberId, ...shares.map((share) => share.memberId)])]
   const members = await appDb.members.bulkGet(memberIds)
   const presentMembers = members.filter((member): member is MemberRecord => Boolean(member))
-  const memberMap = new Map(presentMembers.map((member) => [member.id, member.name]))
+  const { currentUserMemberId } = await getCurrentUserContext()
+  const memberMap = new Map(
+    presentMembers.map((member) => [member.id, member.id === currentUserMemberId ? 'You' : member.name]),
+  )
 
   return {
     amount: formatCurrencyFromCents(expense.amountCents),
@@ -1010,7 +1139,7 @@ export async function createExpense({
     throw new Error('Group not found.')
   }
 
-  const memberNameMap = await getGroupMemberNameMap(groupId)
+  const memberNameMap = await getDisplayMemberNameMap(groupId)
   const shares = computeShares({
     adjustmentEntries,
     amountCents,
@@ -1492,7 +1621,7 @@ export async function createSettlement({
     throw new Error('Group not found.')
   }
 
-  const memberNameMap = await getGroupMemberNameMap(groupId)
+  const memberNameMap = await getDisplayMemberNameMap(groupId)
   const { activity, createdAt, settlementId } = await createSettlementActivity({
     amountCents,
     groupId: group.id,

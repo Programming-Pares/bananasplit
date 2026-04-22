@@ -70,11 +70,11 @@ export function ExpenseDetailsPage() {
         <Card className="border-0 bg-[linear-gradient(160deg,#fff8da,#fffef8)] shadow-[0_16px_32px_rgba(245,181,0,0.16)]">
           <CardContent className="space-y-4 p-5">
             <div>
-              <p className="text-sm text-muted-foreground">{expense.date}</p>
-              <h2 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+              <p className="text-sm text-muted-foreground sm:text-[15px]">{expense.date}</p>
+              <h2 className="mt-1 text-[2rem] font-semibold tracking-tight text-foreground sm:text-[2.2rem]">
                 {expense.title}
               </h2>
-              <p className="mt-2 text-xl font-semibold text-[var(--color-banana-950)]">
+              <p className="mt-2 text-2xl font-semibold text-[var(--color-banana-950)] sm:text-[1.7rem]">
                 {expense.amount}
               </p>
             </div>
@@ -83,13 +83,13 @@ export function ExpenseDetailsPage() {
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   Paid by
                 </p>
-                <p className="mt-1 text-sm text-foreground">{expense.paidBy}</p>
+                <p className="mt-1 text-sm text-foreground sm:text-[15px]">{expense.paidBy}</p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   Split between
                 </p>
-                <p className="mt-1 text-sm text-foreground">{expense.participants.join(', ')}</p>
+                <p className="mt-1 text-sm text-foreground sm:text-[15px]">{expense.participants.join(', ')}</p>
               </div>
             </div>
           </CardContent>

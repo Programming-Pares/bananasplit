@@ -34,7 +34,7 @@ export function GroupBalanceCard({ items }: GroupBalanceCardProps) {
   return (
     <Card className="border-0 bg-[linear-gradient(155deg,#fff7d3,#fffef8)] shadow-[0_16px_32px_rgba(245,181,0,0.16)]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Group balance summary</CardTitle>
+        <CardTitle>Group balance summary</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-3">
@@ -64,7 +64,7 @@ export function GroupBalanceCard({ items }: GroupBalanceCardProps) {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm leading-6 text-foreground">
+                    <p className="text-sm leading-6 text-foreground sm:text-[15px]">
                       <span className="font-semibold">{item.from}</span>
                       <span className="text-muted-foreground"> owed </span>
                       <span className="font-semibold text-[var(--color-banana-950)]">
@@ -78,7 +78,7 @@ export function GroupBalanceCard({ items }: GroupBalanceCardProps) {
               </div>
             ))
           ) : (
-            <div className="rounded-[22px] bg-white/75 px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-[22px] bg-white/75 px-4 py-3 text-sm leading-6 text-muted-foreground sm:text-[15px]">
               No open balances.
             </div>
           )}

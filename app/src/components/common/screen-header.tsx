@@ -20,8 +20,8 @@ export function ScreenHeader({
   subtitle,
 }: ScreenHeaderProps) {
   return (
-    <header className="mb-6 flex items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
+    <header className="mb-5 flex items-start justify-between gap-3 sm:mb-7 sm:gap-4">
+      <div className="flex items-start gap-2.5 sm:gap-3">
         {backHref ? (
           <Button
             asChild
@@ -35,11 +35,11 @@ export function ScreenHeader({
           </Button>
         ) : null}
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-[1.75rem] leading-[0.98] font-semibold tracking-tight text-foreground sm:text-[2rem]">
             {title}
           </h1>
           {subtitle ? (
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
+            <p className="text-sm leading-5 text-muted-foreground sm:text-[15px] sm:leading-6">{subtitle}</p>
           ) : null}
         </div>
       </div>

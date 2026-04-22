@@ -72,11 +72,11 @@ export function ProfilePage() {
                   <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-banana-900)]/60">
                     {isGoogleProfile ? 'Google account' : 'Local profile'}
                   </p>
-                  <p className="truncate text-2xl font-semibold tracking-tight text-[var(--color-banana-950)]">
+                  <p className="truncate text-[1.65rem] font-semibold tracking-tight text-[var(--color-banana-950)] sm:text-[1.8rem]">
                     {data.userName}
                   </p>
                 </div>
-                <p className="truncate text-sm text-muted-foreground">
+                <p className="truncate text-sm leading-6 text-muted-foreground sm:text-[15px]">
                   {data.accountEmail ?? 'No email connected'}
                 </p>
               </div>
@@ -96,7 +96,7 @@ export function ProfilePage() {
         {isGoogleProfile ? (
           <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
             <CardHeader className="pb-1">
-              <CardTitle className="text-base">Connected account</CardTitle>
+              <CardTitle>Connected account</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-[24px] bg-secondary/35 px-4 py-4">
@@ -105,15 +105,15 @@ export function ProfilePage() {
                     <ShieldCheck className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground">Google manages this profile</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="text-[15px] font-medium text-foreground sm:text-base">Google manages this profile</p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                       Name and email come from the connected account for this MVP.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3 rounded-[24px] bg-white/70 px-4 py-4 text-sm">
+              <div className="space-y-3 rounded-[24px] bg-white/70 px-4 py-4 text-sm sm:text-[15px]">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-muted-foreground">Display name</span>
                   <span className="font-medium text-foreground">{data.userName}</span>
@@ -145,7 +145,7 @@ export function ProfilePage() {
         ) : (
           <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
             <CardHeader className="pb-1">
-              <CardTitle className="text-base">Edit local profile</CardTitle>
+              <CardTitle>Edit local profile</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-3">
@@ -175,7 +175,7 @@ export function ProfilePage() {
                 />
               </div>
 
-              <div className="rounded-[24px] bg-white/70 px-4 py-4 text-sm leading-6 text-muted-foreground">
+              <div className="rounded-[24px] bg-white/70 px-4 py-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                 This local profile is used for greetings, group POV balances, and your member name inside shared expenses.
               </div>
 
@@ -198,14 +198,14 @@ export function ProfilePage() {
 
         <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
           <CardHeader className="pb-1">
-            <CardTitle className="text-base">Identity notes</CardTitle>
+            <CardTitle>Identity notes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3 rounded-[24px] bg-white/70 px-4 py-4">
               <div className="rounded-2xl bg-secondary p-2 text-secondary-foreground">
                 <PencilLine className="size-4" />
               </div>
-              <div className="space-y-1 text-sm">
+              <div className="space-y-1 text-sm sm:text-[15px]">
                 <p className="font-medium text-foreground">Local mode is editable</p>
                 <p className="leading-6 text-muted-foreground">
                   Change your local profile anytime without affecting sync architecture or group data shape.
@@ -217,7 +217,7 @@ export function ProfilePage() {
               <div className="rounded-2xl bg-secondary p-2 text-secondary-foreground">
                 <Mail className="size-4" />
               </div>
-              <div className="space-y-1 text-sm">
+              <div className="space-y-1 text-sm sm:text-[15px]">
                 <p className="font-medium text-foreground">Settings remains your account hub</p>
                 <p className="leading-6 text-muted-foreground">
                   Go back to <Link className="font-medium text-foreground underline-offset-4 hover:underline" to="/settings">Settings</Link> for sign-in, currency, and device preferences.

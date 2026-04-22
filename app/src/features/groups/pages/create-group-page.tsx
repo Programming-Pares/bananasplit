@@ -25,7 +25,7 @@ export function CreateGroupPage() {
       <div className="space-y-6">
         <div className="space-y-3">
           <label
-            className="block text-sm font-medium text-foreground"
+            className="block text-sm font-medium text-foreground sm:text-[15px]"
             htmlFor="group-name"
           >
             Group name
@@ -41,13 +41,13 @@ export function CreateGroupPage() {
 
         <div className="space-y-3">
           <label
-            className="block text-sm font-medium text-foreground"
+            className="block text-sm font-medium text-foreground sm:text-[15px]"
             htmlFor="group-description"
           >
             Description
           </label>
           <textarea
-            className="min-h-32 w-full rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="min-h-32 w-full rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 text-sm text-foreground shadow-none outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:text-[15px]"
             id="group-description"
             placeholder="Weekend food trip, apartment bills, or any shared spending context."
             value={description}

@@ -1,0 +1,34 @@
+Brand identity for "BananaSplit", a modern app for splitting group expenses, tracking shared money, and helping
+friends or groups stay financially organized.
+
+Create a clean, warm, memorable mascot-based visual identity centered on a banana character with expressive eyes. The
+banana mascot should feel friendly, clever, trustworthy, slightly playful, and emotionally likable, while still
+looking polished enough for a real finance/productivity app. The style should be modern, premium, simple, and
+brandable, not childish and not messy.
+
+Visual direction:
+- mascot: banana with eyes
+- personality: friendly, smart, confident, approachable
+- aesthetic: modern startup branding, soft fintech feel, mobile-first, rounded geometry
+- color palette: banana yellow, butter yellow, golden yellow, soft cream, deep cocoa brown accents
+- rendering style: clean vector-like illustration, subtle gradients, soft premium shadows, crisp silhouette, high
+readability
+- shape language: rounded, smooth, minimal, iconic
+- mood: warm, organized, social, polished, playful in a controlled way
+
+The mascot can subtly suggest ideas of splitting, balance, shared expenses, friendship, or money flow through shape,
+pose, expression, or simple supporting elements, but the design should remain minimal and uncluttered.
+
+Avoid:
+- childish cartoon style
+- overly detailed illustration
+- realistic banana textures
+- clipart look
+- cluttered composition
+- too many props
+- ugly generic AI logo style
+- aggressive or weird facial expressions
+- crypto / cyberpunk / neon aesthetics
+- purple-heavy palettes
+
+Maintain strong brand consistency across all outputs so every image clearly belongs to the same product family.
