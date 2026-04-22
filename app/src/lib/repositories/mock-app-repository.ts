@@ -210,12 +210,16 @@ async function getGroupBalances(groupId: string) {
     .sortBy('createdAt')
 
   const shareByExpenseId = new Map<string, ExpenseShareRecord[]>()
-  for (const expense of expenses) {
-    const expenseShares = await appDb.expenseShares
-      .where('expenseId')
-      .equals(expense.id)
-      .sortBy('createdAt')
-    shareByExpenseId.set(expense.id, expenseShares)
+  const expenseIds = expenses.map((expense) => expense.id)
+  const allShares = await appDb.expenseShares
+    .where('expenseId')
+    .anyOf(expenseIds)
+    .toArray()
+
+  for (const share of allShares) {
+    const list = shareByExpenseId.get(share.expenseId) ?? []
+    list.push(share)
+    shareByExpenseId.set(share.expenseId, list)
   }
 
   const matrix = new Map<string, Map<string, number>>()
@@ -717,22 +721,31 @@ export async function getGroupById(groupId: string) {
   ])
 
   const memberNameMap = new Map(acceptedMembers.map(({ member }) => [member.id, member.name]))
-  const expenseItems = await Promise.all(
-    expenses
-      .sort((left, right) => right.createdAt - left.createdAt)
-      .map(async (expense) => {
-        const shares = await appDb.expenseShares.where('expenseId').equals(expense.id).toArray()
+  const allSharesForExpenses = await appDb.expenseShares
+    .where('expenseId')
+    .anyOf(expenses.map((e) => e.id))
+    .toArray()
+  const sharesByExpenseId = new Map<string, ExpenseShareRecord[]>()
+  for (const share of allSharesForExpenses) {
+    const list = sharesByExpenseId.get(share.expenseId) ?? []
+    list.push(share)
+    sharesByExpenseId.set(share.expenseId, list)
+  }
 
-        return {
-          amount: formatCurrencyFromCents(expense.amountCents),
-          dateLabel: formatShortDate(expense.createdAt),
-          expenseId: expense.id,
-          paidBy: `Paid by ${memberNameMap.get(expense.paidByMemberId) ?? 'Unknown'}`,
-          splitLabel: `Split with ${shares.length} people`,
-          title: expense.title,
-        }
-      }),
-  )
+  const expenseItems = expenses
+    .sort((left, right) => right.createdAt - left.createdAt)
+    .map((expense) => {
+      const shares = sharesByExpenseId.get(expense.id) ?? []
+
+      return {
+        amount: formatCurrencyFromCents(expense.amountCents),
+        dateLabel: formatShortDate(expense.createdAt),
+        expenseId: expense.id,
+        paidBy: `Paid by ${memberNameMap.get(expense.paidByMemberId) ?? 'Unknown'}`,
+        splitLabel: `Split with ${shares.length} people`,
+        title: expense.title,
+      }
+    })
 
   return {
     balanceItems: balances.map(
