@@ -1,6 +1,6 @@
 import { CheckCheck, Clock3, Ellipsis, PauseCircle, PlayCircle, Plus, Repeat, ToggleLeft, ToggleRight, UserPlus, Users, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { useQuickActions } from '@/app/providers/quick-action-provider'
 import { EmptyState } from '@/components/common/empty-state'
@@ -23,6 +23,7 @@ import { GroupBalanceCard } from '@/features/groups/components/group-balance-car
 import { GroupExpenseList } from '@/features/groups/components/group-expense-list'
 import {
   useGroupQuery,
+  useDeleteGroupMutation,
   useCreateExpenseFromRecurringMutation,
   useCreateRecurringExpenseMutation,
   useSetGroupActiveStateMutation,
@@ -36,9 +37,11 @@ function shouldShowMemberAvatar(index: number) {
 
 export function GroupDetailsPage() {
   const { groupId = '' } = useParams()
+  const navigate = useNavigate()
   const { data: group } = useGroupQuery(groupId)
   const { openExpenseSheet, openSettlementSheet } = useQuickActions()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isRecurringOpen, setIsRecurringOpen] = useState(false)
   const [recurringTitle, setRecurringTitle] = useState('')
   const [recurringAmount, setRecurringAmount] = useState('')
@@ -50,6 +53,7 @@ export function GroupDetailsPage() {
   const createRecurringExpenseMutation = useCreateRecurringExpenseMutation()
   const toggleRecurringExpensePausedMutation = useToggleRecurringExpensePausedMutation()
   const createExpenseFromRecurringMutation = useCreateExpenseFromRecurringMutation()
+  const deleteGroupMutation = useDeleteGroupMutation()
 
   if (!group) {
     return null
@@ -132,7 +136,13 @@ export function GroupDetailsPage() {
                   className="h-11 w-full justify-start rounded-2xl text-destructive hover:text-destructive"
                   variant="ghost"
                   type="button"
+                  disabled={menuActionPending || deleteGroupMutation.isPending}
+                  onClick={() => {
+                    setIsDeleteDialogOpen(true)
+                    setIsMenuOpen(false)
+                  }}
                 >
+                  <Ellipsis className="size-4 rotate-90" />
                   Delete group
                 </Button>
               </div>
@@ -495,6 +505,40 @@ export function GroupDetailsPage() {
             </Button>
             <Button className="h-12 rounded-2xl" onClick={() => setIsRecurringOpen(false)} type="button" variant="secondary">
               Close
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+      <Drawer direction="bottom" open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DrawerContent className="mx-auto max-w-3xl border-none bg-[#fffdf6]">
+          <DrawerHeader className="space-y-1 px-4 pb-2 pt-5 text-left">
+            <DrawerTitle className="text-xl font-semibold text-destructive">Delete Group</DrawerTitle>
+            <DrawerDescription>
+              Are you sure you want to delete <strong>{group.name}</strong>? This action cannot be undone and will remove all group data for you.
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <DrawerFooter className="border-t border-border/70 bg-[#fffdf6] px-4 pb-6 pt-4">
+            <Button
+              className="h-12 rounded-2xl"
+              disabled={deleteGroupMutation.isPending}
+              variant="destructive"
+              onClick={async () => {
+                await deleteGroupMutation.mutateAsync({ groupId })
+                navigate('/')
+              }}
+              type="button"
+            >
+              Yes, delete group
+            </Button>
+            <Button 
+              className="h-12 rounded-2xl" 
+              onClick={() => setIsDeleteDialogOpen(false)} 
+              type="button" 
+              variant="secondary"
+              disabled={deleteGroupMutation.isPending}
+            >
+              Cancel
             </Button>
           </DrawerFooter>
         </DrawerContent>

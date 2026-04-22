@@ -1167,6 +1167,58 @@ export async function updateExpense({
   return expense.id
 }
 
+export async function deleteGroup({
+  groupId,
+}: {
+  groupId: string
+}) {
+  const group = await appDb.groups.get(groupId)
+
+  if (!group || group.deletedAt !== null) {
+    throw new Error('Group not found.')
+  }
+
+  const now = Date.now()
+
+  await appDb.transaction(
+    'rw',
+    [appDb.groups, appDb.groupMembers, appDb.activity, appDb.syncOutbox],
+    async () => {
+      await appDb.groups.put({
+        ...group,
+        deletedAt: now,
+        updatedAt: now,
+      })
+      
+      // Also soft-delete all group members
+      await appDb.groupMembers
+        .where('groupId')
+        .equals(groupId)
+        .modify({ deletedAt: now, updatedAt: now })
+
+      await appDb.activity.add(
+        buildSystemActivity({
+          groupId,
+          message: `Group deleted: ${group.name}.`,
+          relatedId: groupId,
+        }),
+      )
+
+      await appDb.syncOutbox.add(
+        buildOutboxRecord({
+          entityId: group.id,
+          entityType: 'group',
+          operation: 'delete',
+          payload: JSON.stringify({
+            deletedAt: now,
+            groupId: group.id,
+          }),
+        }),
+      )
+    },
+  )
+}
+
 export async function deleteExpense({
   expenseId,
 }: {

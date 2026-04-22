@@ -8,6 +8,7 @@ import {
   createRecurringExpense,
   createSettlement,
   deleteExpense,
+  deleteGroup,
   getActivityData,
   getAllGroupsData,
   getDashboardData,
@@ -234,6 +235,17 @@ export function useDeleteExpenseMutation() {
 
   return useMutation({
     mutationFn: deleteExpense,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useDeleteGroupMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: deleteGroup,
     onSuccess: async () => {
       await invalidate()
     },
