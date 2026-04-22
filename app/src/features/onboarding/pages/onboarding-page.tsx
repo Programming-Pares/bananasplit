@@ -21,14 +21,14 @@ export function OnboardingPage() {
                 Mobile-first MVP
               </Badge>
               <div className="space-y-2">
-                <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-banana-950)]">
+                <h1 className="text-[2.35rem] font-semibold tracking-tight text-[var(--color-banana-950)] sm:text-5xl">
                   Split bills. Stay friends.
                 </h1>
-                <p className="text-sm leading-6 text-[var(--color-banana-900)]/80">
+                <p className="text-sm leading-6 text-[var(--color-banana-900)]/80 sm:text-[15px]">
                   Start with one local profile, one group, and one clean expense flow.
                 </p>
               </div>
-              <div className="flex items-center gap-3 rounded-[24px] bg-white/75 p-4 text-sm text-[var(--color-banana-900)]">
+              <div className="flex items-center gap-3 rounded-[24px] bg-white/75 p-4 text-sm text-[var(--color-banana-900)] sm:text-[15px]">
                 <PencilRuler className="size-5" />
                 Placeholder logo stays here until you swap in final brand.
               </div>
@@ -68,7 +68,7 @@ export function OnboardingPage() {
               <ArrowRight className="size-5" />
             </Link>
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm leading-6 text-muted-foreground sm:text-[15px]">
             Data will live on-device first. Sync can come later.
           </p>
         </div>

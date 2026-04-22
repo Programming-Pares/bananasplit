@@ -35,7 +35,7 @@ export function GroupCard({
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <p className="text-base font-semibold text-foreground">{name}</p>
+                <p className="text-[15px] font-semibold text-foreground sm:text-base">{name}</p>
                 <Badge className="rounded-full bg-secondary px-2.5 text-[10px] text-secondary-foreground">
                   {openBalanceCount} open
                 </Badge>
@@ -43,12 +43,12 @@ export function GroupCard({
                   {isDone ? 'Done' : isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                 <Users className="size-4" />
                 {memberCount} members
               </p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground sm:text-[13px]">
               {isDone ? 'Done' : 'Open'}
               <ArrowUpRight className="size-3.5" />
             </span>
@@ -57,7 +57,7 @@ export function GroupCard({
           <div className="space-y-3">
             <p
               className={cn(
-                'text-lg font-semibold',
+                'text-xl font-semibold sm:text-[1.35rem]',
                 trend === 'positive'
                   ? 'text-emerald-600'
                   : 'text-orange-600',
@@ -65,7 +65,7 @@ export function GroupCard({
             >
               {netLabel}
             </p>
-            <div className="rounded-[20px] bg-secondary/45 px-3.5 py-3 text-sm text-foreground">
+            <div className="rounded-[20px] bg-secondary/45 px-3.5 py-3 text-sm leading-6 text-foreground sm:text-[15px]">
               {topBalance}
             </div>
           </div>

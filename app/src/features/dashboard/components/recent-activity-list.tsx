@@ -18,7 +18,7 @@ export function RecentActivityList({ items }: RecentActivityListProps) {
   return (
     <Card className="border-0 bg-card/90 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Recent activity</CardTitle>
+        <CardTitle>Recent activity</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {items.length === 0 ? (
@@ -48,7 +48,7 @@ export function RecentActivityList({ items }: RecentActivityListProps) {
                       ? 'Settlement'
                       : 'System'}
                 </Badge>
-                <p className="text-sm leading-6 text-muted-foreground">{item.text}</p>
+                <p className="text-sm leading-6 text-muted-foreground sm:text-[15px]">{item.text}</p>
               </div>
             </div>
           ))

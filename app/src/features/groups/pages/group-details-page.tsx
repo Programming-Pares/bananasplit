@@ -146,10 +146,10 @@ export function GroupDetailsPage() {
 
       <div className="space-y-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
+          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground sm:text-xs">
             {group.isDone ? 'Done' : 'Open'}
           </Badge>
-          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
+          <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground sm:text-xs">
             {group.isActive ? 'Active' : 'Inactive'}
           </Badge>
         </div>
@@ -157,7 +157,7 @@ export function GroupDetailsPage() {
         <div className="flex flex-wrap items-center gap-2">
           {group.members.map((member, index) => (
             <div
-              className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-sm text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)]"
+              className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2 text-sm text-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)] sm:text-[15px]"
               key={member}
             >
               {shouldShowMemberAvatar(index) ? (
@@ -215,8 +215,8 @@ export function GroupDetailsPage() {
             <div className="rounded-[24px] bg-card/90 p-4 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">Recurring expenses</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Keep regular group costs ready to reuse.</p>
+                  <p className="text-[15px] font-medium text-foreground sm:text-base">Recurring expenses</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">Keep regular group costs ready to reuse.</p>
                 </div>
                 <Button
                   className="rounded-2xl"
@@ -252,8 +252,8 @@ export function GroupDetailsPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-medium text-foreground">{item.title}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <p className="text-[15px] font-medium text-foreground sm:text-base">{item.title}</p>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                             {item.frequencyLabel} · {item.amount} · {item.participantCount} people
                           </p>
                         </div>
@@ -300,11 +300,11 @@ export function GroupDetailsPage() {
               <div className="rounded-[24px] bg-card/90 p-4 shadow-[0_12px_30px_rgba(63,52,25,0.08)]">
                 <div className="flex items-center gap-2">
                   <Wallet className="size-4 text-[var(--color-banana-900)]" />
-                  <p className="text-sm font-medium text-foreground">Suggested settle-ups</p>
+                  <p className="text-[15px] font-medium text-foreground sm:text-base">Suggested settle-ups</p>
                 </div>
                 <div className="mt-3 space-y-2">
                   {group.settlementSuggestions.map((item) => (
-                    <div className="rounded-[20px] bg-secondary/45 px-4 py-3 text-sm text-foreground" key={`${item.fromId}-${item.toId}`}>
+                    <div className="rounded-[20px] bg-secondary/45 px-4 py-3 text-sm text-foreground sm:text-[15px]" key={`${item.fromId}-${item.toId}`}>
                       {item.suggestion}
                     </div>
                   ))}
@@ -319,7 +319,7 @@ export function GroupDetailsPage() {
               />
             ) : (
               group.balanceItems.map((item) => (
-                <div className="rounded-[22px] bg-card/90 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)]" key={item}>
+                <div className="rounded-[22px] bg-card/90 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_30px_rgba(63,52,25,0.08)] sm:text-[15px]" key={item}>
                   {item}
                 </div>
               ))
@@ -337,22 +337,22 @@ export function GroupDetailsPage() {
                 <div className="rounded-[24px] bg-card/90 p-4 shadow-[0_12px_30px_rgba(63,52,25,0.08)]" key={member.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-base font-semibold text-foreground">{member.name}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{member.netLabel}</p>
+                      <p className="text-[15px] font-semibold text-foreground sm:text-base">{member.name}</p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-[15px]">{member.netLabel}</p>
                     </div>
-                    <div className="text-right text-sm">
+                    <div className="text-right text-sm sm:text-[15px]">
                       <p className="text-muted-foreground">Owes {member.owes}</p>
                       <p className="mt-1 text-foreground">Is owed {member.owed}</p>
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
                     {member.directLines.length === 0 ? (
-                      <div className="rounded-[20px] bg-secondary/35 px-4 py-3 text-sm text-muted-foreground">
+                      <div className="rounded-[20px] bg-secondary/35 px-4 py-3 text-sm text-muted-foreground sm:text-[15px]">
                         No direct balances for this member yet.
                       </div>
                     ) : (
                       member.directLines.map((line) => (
-                        <div className="rounded-[20px] bg-secondary/35 px-4 py-3 text-sm text-foreground" key={`${member.id}-${line}`}>
+                        <div className="rounded-[20px] bg-secondary/35 px-4 py-3 text-sm text-foreground sm:text-[15px]" key={`${member.id}-${line}`}>
                           {line}
                         </div>
                       ))
@@ -373,12 +373,12 @@ export function GroupDetailsPage() {
               group.timeline.map((item) => (
                 <div className="rounded-[22px] bg-card/90 px-4 py-4 shadow-[0_12px_30px_rgba(63,52,25,0.08)]" key={item.id}>
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-foreground">{item.text}</p>
+                    <p className="text-[15px] font-medium text-foreground sm:text-base">{item.text}</p>
                     <Badge className="rounded-full bg-secondary px-3 py-1 text-[11px] text-secondary-foreground">
                       {item.type}
                     </Badge>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.when}</p>
+                  <p className="mt-2 text-sm text-muted-foreground sm:text-[15px]">{item.when}</p>
                 </div>
               ))
             )}
@@ -395,7 +395,7 @@ export function GroupDetailsPage() {
 
           <div className="space-y-4 px-4 pb-2">
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-foreground" htmlFor="recurring-title">
+              <label className="block text-sm font-medium text-foreground sm:text-[15px]" htmlFor="recurring-title">
                 Title
               </label>
               <Input
@@ -406,7 +406,7 @@ export function GroupDetailsPage() {
               />
             </div>
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-foreground" htmlFor="recurring-amount">
+              <label className="block text-sm font-medium text-foreground sm:text-[15px]" htmlFor="recurring-amount">
                 Amount
               </label>
               <Input
@@ -431,7 +431,7 @@ export function GroupDetailsPage() {
               ))}
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Paid by</p>
+              <p className="text-sm font-medium text-foreground sm:text-[15px]">Paid by</p>
               <div className="flex flex-wrap gap-2">
                 {group.memberEntries.map((member) => (
                   <Button
@@ -447,7 +447,7 @@ export function GroupDetailsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Participants</p>
+              <p className="text-sm font-medium text-foreground sm:text-[15px]">Participants</p>
               <div className="flex flex-wrap gap-2">
                 {group.memberEntries.map((member) => {
                   const active = recurringParticipantIds.includes(member.id)

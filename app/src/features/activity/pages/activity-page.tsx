@@ -3,7 +3,7 @@ import { Clock3, ReceiptText, Wallet } from 'lucide-react'
 
 import { EmptyState } from '@/components/common/empty-state'
 import { MobileShell } from '@/components/common/mobile-shell'
-import { ScreenHeader } from '@/components/common/screen-header'
+import { RootPageHeader } from '@/components/common/root-page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { useActivityQuery } from '@/lib/queries/use-app-queries'
 
@@ -21,14 +21,19 @@ export function ActivityPage() {
 
   return (
     <MobileShell>
-      <ScreenHeader subtitle="Money moves and local group history" title="Activity" />
-
       <div className="space-y-5">
+        <RootPageHeader
+          showNotifications
+          showSearch
+          subtitle="Money moves and local group history"
+          title="Activity"
+        />
+
         <div className="flex flex-wrap gap-2">
           {(['all', 'expense', 'settlement', 'system'] as const).map((item) => (
             <button
               key={item}
-              className={`rounded-full px-4 py-2 text-sm ${
+              className={`rounded-full px-4 py-2 text-sm sm:text-[15px] ${
                 typeFilter === item ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
               }`}
               onClick={() => setTypeFilter(item)}
@@ -38,7 +43,7 @@ export function ActivityPage() {
             </button>
           ))}
           <button
-            className="rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground"
+            className="rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground sm:text-[15px]"
             onClick={() => setSortOrder((current) => (current === 'newest' ? 'oldest' : 'newest'))}
             type="button"
           >
@@ -71,11 +76,11 @@ export function ActivityPage() {
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-foreground">{item.groupName}</p>
-                      <p className="text-xs text-muted-foreground">{item.when}</p>
+                      <p className="text-[15px] font-medium text-foreground sm:text-base">{item.groupName}</p>
+                      <p className="text-xs text-muted-foreground sm:text-[13px]">{item.when}</p>
                     </div>
-                    <p className="text-sm leading-6 text-muted-foreground">{item.text}</p>
-                    <p className="text-sm font-semibold text-foreground">{item.amount}</p>
+                    <p className="text-sm leading-6 text-muted-foreground sm:text-[15px]">{item.text}</p>
+                    <p className="text-[15px] font-semibold text-foreground sm:text-base">{item.amount}</p>
                   </div>
                 </CardContent>
               </Card>

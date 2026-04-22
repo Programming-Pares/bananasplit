@@ -34,7 +34,7 @@ export function BottomNav() {
                   <Link
                     key={item.label}
                     className={cn(
-                      'flex flex-col items-center gap-1 rounded-[20px] px-2 py-3 text-[11px] font-medium text-muted-foreground transition-colors',
+                      'flex flex-col items-center gap-1 rounded-[20px] px-2 py-3 text-[10px] font-medium text-muted-foreground transition-colors sm:text-[11px]',
                       isActive && 'bg-primary text-primary-foreground',
                     )}
                     to={item.href}
@@ -67,7 +67,7 @@ export function BottomNav() {
                   <Link
                     key={item.label}
                     className={cn(
-                      'flex flex-col items-center gap-1 rounded-[20px] px-2 py-3 text-[11px] font-medium text-muted-foreground transition-colors',
+                      'flex flex-col items-center gap-1 rounded-[20px] px-2 py-3 text-[10px] font-medium text-muted-foreground transition-colors sm:text-[11px]',
                       isActive && 'bg-primary text-primary-foreground',
                     )}
                     to={item.href}

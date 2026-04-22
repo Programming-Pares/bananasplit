@@ -36,14 +36,14 @@ export function GroupExpenseList({ items }: GroupExpenseListProps) {
             <CardContent className="space-y-3 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">{item.dateLabel}</p>
-                  <h3 className="mt-1 text-base font-semibold text-foreground">
+                  <p className="text-sm text-muted-foreground sm:text-[15px]">{item.dateLabel}</p>
+                  <h3 className="mt-1 text-[15px] font-semibold text-foreground sm:text-base">
                     {item.title}
                   </h3>
                 </div>
-                <p className="text-base font-semibold text-foreground">{item.amount}</p>
+                <p className="text-[15px] font-semibold text-foreground sm:text-base">{item.amount}</p>
               </div>
-              <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between gap-3 text-sm leading-6 text-muted-foreground sm:text-[15px]">
                 <span>{item.paidBy}</span>
                 <span>{item.splitLabel}</span>
               </div>
