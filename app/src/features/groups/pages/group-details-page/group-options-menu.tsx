@@ -1,8 +1,10 @@
 import {
   CheckCheck,
   Ellipsis,
+  PencilLine,
   ToggleLeft,
   ToggleRight,
+  Trash2,
   UserPlus,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -15,6 +17,7 @@ type GroupOptionsMenuProps = {
   isActive: boolean
   isOpen: boolean
   menuActionPending: boolean
+  onDelete: () => Promise<void>
   onMarkDone: () => Promise<void>
   onToggleActive: () => Promise<void>
   setIsOpen: (updater: boolean | ((current: boolean) => boolean)) => void
@@ -26,6 +29,7 @@ export function GroupOptionsMenu({
   isActive,
   isOpen,
   menuActionPending,
+  onDelete,
   onMarkDone,
   onToggleActive,
   setIsOpen,
@@ -56,6 +60,17 @@ export function GroupOptionsMenu({
             </Link>
           </Button>
           <Button
+            disabled={menuActionPending}
+            asChild
+            className="h-11 w-full justify-start rounded-2xl"
+            variant="ghost"
+          >
+            <Link to={`/groups/${groupId}/edit`}>
+              <PencilLine className="size-4" />
+              Edit group
+            </Link>
+          </Button>
+          <Button
             className="h-11 w-full justify-start rounded-2xl"
             disabled={menuActionPending || isDone}
             variant="ghost"
@@ -77,9 +92,12 @@ export function GroupOptionsMenu({
           </Button>
           <Button
             className="h-11 w-full justify-start rounded-2xl text-destructive hover:text-destructive"
+            disabled={menuActionPending}
             variant="ghost"
+            onClick={onDelete}
             type="button"
           >
+            <Trash2 className="size-4" />
             Delete group
           </Button>
         </div>

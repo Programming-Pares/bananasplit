@@ -1,3 +1,4 @@
+import { BudgetSelector } from '@/components/budget/budget-selector'
 import { Input } from '@/components/ui/input'
 import { shouldShowMemberAvatar } from '@/features/quick-actions/components/quick-action-sheet/member-avatar'
 import { AdjustmentDrawer } from '@/features/quick-actions/components/quick-action-sheet/adjustment-drawer'
@@ -15,6 +16,19 @@ type Group = {
   name: string
 }
 
+type Budget = {
+  amount: string
+  amountCents: number
+  id: string
+  name: string
+  overBudget: string
+  overBudgetCents: number
+  remaining: string
+  remainingCents: number
+  spent: string
+  spentCents: number
+}
+
 type Adjustment = {
   amountCents: number
   id: string
@@ -26,6 +40,7 @@ type ExpenseDetailsViewProps = {
   adjustmentAmountInput: string
   adjustmentMemberId: string
   amountInput: string
+  budgets: Budget[]
   allSelected: boolean
   expenseAdjustments: Adjustment[]
   expensePaidById: string
@@ -45,8 +60,10 @@ type ExpenseDetailsViewProps = {
   onConfirmAdjustment: () => void
   onGroupChange: (groupId: string) => void
   onOpenAdjustment: () => void
+  onBudgetChange: (budgetId: string | null) => void
   onPaidByChange: (memberId: string) => void
   onParticipantChange: (updater: string[] | ((current: string[]) => string[])) => void
+  selectedBudgetId: string | null
   onTitleChange: (value: string) => void
 }
 
@@ -56,6 +73,7 @@ export function ExpenseDetailsView({
   adjustmentMemberId,
   amountCents,
   amountInput,
+  budgets,
   allSelected,
   effectiveGroupId,
   expenseAdjustments,
@@ -74,8 +92,10 @@ export function ExpenseDetailsView({
   onConfirmAdjustment,
   onGroupChange,
   onOpenAdjustment,
+  onBudgetChange,
   onPaidByChange,
   onParticipantChange,
+  selectedBudgetId,
   onTitleChange,
 }: ExpenseDetailsViewProps) {
   return (
@@ -135,6 +155,13 @@ export function ExpenseDetailsView({
               ))}
             </div>
           </div>
+
+          <BudgetSelector
+            amountCents={amountCents}
+            budgets={budgets}
+            selectedBudgetId={selectedBudgetId}
+            onSelect={onBudgetChange}
+          />
 
           <div className="space-y-2">
             <div className="grid grid-cols-[minmax(0,9fr)_minmax(3.5rem,1fr)] gap-2">

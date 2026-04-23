@@ -5,6 +5,7 @@ import { DashboardPage } from '@/features/dashboard/pages/dashboard-page'
 import { ExpenseDetailsPage } from '@/features/expenses/pages/expense-details-page'
 import { AddMemberPage } from '@/features/groups/pages/add-member-page'
 import { CreateGroupPage } from '@/features/groups/pages/create-group-page'
+import { EditGroupPage } from '@/features/groups/pages/edit-group-page'
 import { GroupDetailsPage } from '@/features/groups/pages/group-details-page'
 import { GroupsPage } from '@/features/groups-list/pages/groups-page'
 import { NotificationsPage } from '@/features/notifications/pages/notifications-page'
@@ -38,6 +39,10 @@ export const appRouter = createBrowserRouter([
   {
     path: '/groups/:groupId/members/new',
     element: <AddMemberPage />,
+  },
+  {
+    path: '/groups/:groupId/edit',
+    element: <EditGroupPage />,
   },
   {
     path: '/groups/:groupId',

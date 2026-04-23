@@ -2,12 +2,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
   addGroupMember,
+  createBudget,
   createExpenseFromRecurring,
   createExpense,
   createGroup,
   createRecurringExpense,
   createSettlement,
+  deleteBudget,
   deleteExpense,
+  deleteGroup,
   markAllNotificationsRead,
   markNotificationRead,
   removeGroupMember,
@@ -19,7 +22,9 @@ import {
   updateAuthState,
   updateCurrency,
   updateExpense,
+  updateGroup,
   updateInviteStatus,
+  updateBudget,
   updateProfile,
 } from '@/lib/repositories/mock-app-repository'
 
@@ -57,6 +62,28 @@ export function useCreateGroupMutation() {
   })
 }
 
+export function useUpdateGroupMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: updateGroup,
+    onSuccess: async (_data, variables) => {
+      await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useDeleteGroupMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: deleteGroup,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
 export function useAddGroupMemberMutation() {
   const invalidate = useInvalidateAppData()
 
@@ -64,6 +91,39 @@ export function useAddGroupMemberMutation() {
     mutationFn: addGroupMember,
     onSuccess: async (_data, variables) => {
       await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useCreateBudgetMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: createBudget,
+    onSuccess: async (_data, variables) => {
+      await invalidate(variables.groupId)
+    },
+  })
+}
+
+export function useUpdateBudgetMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: updateBudget,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useDeleteBudgetMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: deleteBudget,
+    onSuccess: async () => {
+      await invalidate()
     },
   })
 }
@@ -139,9 +199,8 @@ export function useUpdateExpenseMutation() {
 
   return useMutation({
     mutationFn: updateExpense,
-    onSuccess: async (expenseId) => {
-      await invalidate()
-      await invalidate(undefined, expenseId)
+    onSuccess: async (data) => {
+      await invalidate(data.groupId, data.expenseId)
     },
   })
 }
@@ -151,8 +210,8 @@ export function useDeleteExpenseMutation() {
 
   return useMutation({
     mutationFn: deleteExpense,
-    onSuccess: async () => {
-      await invalidate()
+    onSuccess: async (data) => {
+      await invalidate(data.groupId, data.expenseId)
     },
   })
 }

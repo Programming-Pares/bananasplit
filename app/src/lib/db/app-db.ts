@@ -19,6 +19,17 @@ export type GroupRecord = {
   updatedAt: number
 }
 
+export type BudgetRecord = {
+  amountCents: number
+  createdAt: number
+  deletedAt: number | null
+  groupId: string
+  id: string
+  name: string
+  syncStatus: SyncStatus
+  updatedAt: number
+}
+
 export type MemberRecord = {
   createdAt: number
   deletedAt: number | null
@@ -44,6 +55,7 @@ export type GroupMemberRecord = {
 
 export type ExpenseRecord = {
   amountCents: number
+  budgetId: string | null
   createdAt: number
   deletedAt: number | null
   groupId: string
@@ -121,6 +133,7 @@ export type SyncOutboxRecord = {
   entityId: string
   entityType:
     | 'group'
+    | 'budget'
     | 'member'
     | 'groupMember'
     | 'expense'
@@ -135,6 +148,7 @@ export type SyncOutboxRecord = {
 
 export class BananaSplitDatabase extends Dexie {
   activity!: Table<ActivityRecord, string>
+  budgets!: Table<BudgetRecord, string>
   expenseShares!: Table<ExpenseShareRecord, string>
   expenses!: Table<ExpenseRecord, string>
   groupMembers!: Table<GroupMemberRecord, string>
@@ -150,6 +164,7 @@ export class BananaSplitDatabase extends Dexie {
 
     this.version(1).stores({
       activity: 'id, groupId, createdAt, type',
+      budgets: 'id, groupId, updatedAt, deletedAt',
       expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
       expenses: 'id, groupId, createdAt, updatedAt, deletedAt',
       groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
@@ -163,6 +178,7 @@ export class BananaSplitDatabase extends Dexie {
     this.version(2)
       .stores({
         activity: 'id, groupId, createdAt, type',
+        budgets: 'id, groupId, updatedAt, deletedAt',
         expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
         expenses: 'id, groupId, createdAt, updatedAt, deletedAt',
         groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
@@ -185,6 +201,7 @@ export class BananaSplitDatabase extends Dexie {
     this.version(3)
       .stores({
         activity: 'id, groupId, createdAt, type, readAt',
+        budgets: 'id, groupId, updatedAt, deletedAt',
         expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
         expenses: 'id, groupId, createdAt, updatedAt, deletedAt',
         groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
@@ -206,8 +223,46 @@ export class BananaSplitDatabase extends Dexie {
 
     this.version(4).stores({
       activity: 'id, groupId, createdAt, type, readAt',
+      budgets: 'id, groupId, updatedAt, deletedAt',
       expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
       expenses: 'id, groupId, createdAt, updatedAt, deletedAt',
+      groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
+      groups: 'id, updatedAt, deletedAt, isActive, isDone',
+      members: 'id, email, updatedAt, deletedAt',
+      recurringExpenses: 'id, groupId, frequency, isPaused, deletedAt, updatedAt',
+      settings: 'id',
+      settlements: 'id, groupId, createdAt, updatedAt, deletedAt',
+      syncOutbox: 'id, status, createdAt, entityType, entityId',
+    })
+
+    this.version(5)
+      .stores({
+        activity: 'id, groupId, createdAt, type, readAt',
+        budgets: 'id, groupId, updatedAt, deletedAt',
+        expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
+        expenses: 'id, groupId, budgetId, createdAt, updatedAt, deletedAt',
+        groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
+        groups: 'id, updatedAt, deletedAt, isActive, isDone',
+        members: 'id, email, updatedAt, deletedAt',
+        recurringExpenses: 'id, groupId, frequency, isPaused, deletedAt, updatedAt',
+        settings: 'id',
+        settlements: 'id, groupId, createdAt, updatedAt, deletedAt',
+        syncOutbox: 'id, status, createdAt, entityType, entityId',
+      })
+      .upgrade(async (transaction) => {
+        await transaction
+          .table<ExpenseRecord, string>('expenses')
+          .toCollection()
+          .modify((expense) => {
+            expense.budgetId = expense.budgetId ?? null
+          })
+      })
+
+    this.version(6).stores({
+      activity: 'id, groupId, relatedId, createdAt, type, readAt',
+      budgets: 'id, groupId, updatedAt, deletedAt',
+      expenseShares: 'id, expenseId, memberId, [expenseId+memberId], createdAt',
+      expenses: 'id, groupId, budgetId, createdAt, updatedAt, deletedAt',
       groupMembers: 'id, groupId, memberId, inviteStatus, [groupId+memberId], deletedAt',
       groups: 'id, updatedAt, deletedAt, isActive, isDone',
       members: 'id, email, updatedAt, deletedAt',

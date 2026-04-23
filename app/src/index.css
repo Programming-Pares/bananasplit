@@ -59,6 +59,10 @@
 }
 
 :root {
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --bottom-nav-gap: 1.5rem;
+    --bottom-nav-shell: calc(7rem + var(--safe-area-bottom));
+    --bottom-nav-clearance: calc(var(--bottom-nav-shell) + var(--bottom-nav-gap));
     --banana-50: oklch(0.985 0.024 98.5);
     --banana-100: oklch(0.968 0.042 97.9);
     --banana-200: oklch(0.934 0.091 96.2);

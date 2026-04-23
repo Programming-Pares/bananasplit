@@ -82,9 +82,10 @@ export async function updateProfile({
 }
 
 export async function resetLocalData() {
-  await appDb.transaction('rw', [appDb.activity, appDb.expenseShares, appDb.expenses, appDb.groupMembers, appDb.groups, appDb.members, appDb.settings, appDb.settlements, appDb.syncOutbox], async () => {
+  await appDb.transaction('rw', [appDb.activity, appDb.budgets, appDb.expenseShares, appDb.expenses, appDb.groupMembers, appDb.groups, appDb.members, appDb.settings, appDb.settlements, appDb.syncOutbox], async () => {
     await Promise.all([
       appDb.activity.clear(),
+      appDb.budgets.clear(),
       appDb.expenseShares.clear(),
       appDb.expenses.clear(),
       appDb.groupMembers.clear(),

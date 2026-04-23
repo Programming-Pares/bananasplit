@@ -1,9 +1,10 @@
-import { appDb, type MemberRecord } from '@/lib/db/app-db'
+import { appDb } from '@/lib/db/app-db'
 import {
   getActivityWithGroupNames,
   getGroupBalances,
   getGroupMemberBalanceSummary,
 } from '@/lib/repositories/mock-app-repository/balances'
+import { getBudgetSummariesByGroup } from '@/lib/repositories/mock-app-repository/budgets'
 import {
   formatCurrencyFromCents,
   formatLongDate,
@@ -23,7 +24,7 @@ export async function getGroupById(groupId: string) {
     return null
   }
 
-  const [acceptedMembers, pendingMembers, balances, memberBalances, timeline, recurringExpenses, expenses] = await Promise.all([
+  const [acceptedMembers, pendingMembers, balances, memberBalances, timeline, recurringExpenses, expenses, budgets] = await Promise.all([
     getAcceptedGroupMembers(groupId),
     getPendingInviteMembers(groupId),
     getGroupBalances(groupId),
@@ -31,14 +32,18 @@ export async function getGroupById(groupId: string) {
     getActivityWithGroupNames({ includeSystem: true }).then((items) => items.filter((item) => item.groupId === group.id)),
     appDb.recurringExpenses.where('groupId').equals(groupId).filter((item) => item.deletedAt === null).reverse().sortBy('updatedAt'),
     appDb.expenses.where('groupId').equals(groupId).filter((item) => item.deletedAt === null).reverse().sortBy('createdAt'),
+    getBudgetSummariesByGroup(groupId),
   ])
+  const budgetMap = new Map(budgets.map((budget) => [budget.id, budget]))
   const memberNameMap = await getDisplayMemberNameMap(groupId)
   const expenseItems = await Promise.all(
     expenses.sort((left, right) => right.createdAt - left.createdAt).map(async (expense) => {
       const shares = await appDb.expenseShares.where('expenseId').equals(expense.id).toArray()
+      const budget = expense.budgetId ? budgetMap.get(expense.budgetId) : null
 
       return {
         amount: formatCurrencyFromCents(expense.amountCents),
+        budgetLabel: budget ? `${budget.name} · ${budget.remaining} left` : null,
         dateLabel: formatShortDate(expense.createdAt),
         expenseId: expense.id,
         paidBy: `Paid by ${getRequiredName(memberNameMap, expense.paidByMemberId, 'Expense payer')}`,
@@ -62,6 +67,7 @@ export async function getGroupById(groupId: string) {
     memberCount: acceptedMembers.length,
     members: acceptedMembers.map(({ member }) => member.name),
     name: group.name,
+    budgets,
     recurringExpenses: recurringExpenses.map((item) => ({ amount: formatCurrencyFromCents(item.amountCents), frequencyLabel: formatRecurringFrequency(item.frequency), id: item.id, isPaused: item.isPaused, participantCount: JSON.parse(item.participantMemberIdsJson).length, paidByMemberId: item.paidByMemberId, title: item.title })),
     settlementSuggestions: balances.map((item) => ({ amount: formatCurrencyFromCents(item.amountCents), fromId: item.fromId, suggestion: `${item.fromName} should pay ${item.toName} ${formatCurrencyFromCents(item.amountCents)}`, toId: item.toId })),
     timeline,
@@ -82,17 +88,23 @@ export async function getExpenseById(expenseId: string) {
     return null
   }
 
-  const memberIds = [...new Set([expense.paidByMemberId, ...shares.map((share) => share.memberId)])]
-  const members = await appDb.members.bulkGet(memberIds)
-  const presentMembers = members.filter((member): member is MemberRecord => Boolean(member))
+  const acceptedMembers = await getAcceptedGroupMembers(group.id)
+  const presentMembers = acceptedMembers.map(({ member }) => member)
   const { currentUserMemberId } = await getCurrentUserContext()
+  const budgets = await getBudgetSummariesByGroup(group.id)
   const memberMap = new Map(
     presentMembers.map((member) => [member.id, member.id === currentUserMemberId ? 'You' : member.name]),
   )
+  const selectedBudget = expense.budgetId
+    ? budgets.find((budget) => budget.id === expense.budgetId) ?? null
+    : null
 
   return {
     amount: formatCurrencyFromCents(expense.amountCents),
+    budgetId: expense.budgetId,
+    budgetName: selectedBudget?.name ?? null,
     breakdown: shares.map((share) => ({ adjustmentCents: share.adjustmentCents, amount: formatCurrencyFromCents(share.shareCents), member: getRequiredName(memberMap, share.memberId, 'Expense participant'), memberId: share.memberId })),
+    budgets,
     date: formatLongDate(expense.createdAt),
     expenseId: expense.id,
     groupId: group.id,

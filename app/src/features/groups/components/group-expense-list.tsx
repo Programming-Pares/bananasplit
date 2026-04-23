@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 
 type GroupExpense = {
   amount: string
+  budgetLabel?: string | null
   dateLabel: string
   expenseId: string
   paidBy: string
@@ -47,6 +48,9 @@ export function GroupExpenseList({ items }: GroupExpenseListProps) {
                 <span>{item.paidBy}</span>
                 <span>{item.splitLabel}</span>
               </div>
+              {item.budgetLabel ? (
+                <p className="text-sm text-muted-foreground sm:text-[15px]">{item.budgetLabel}</p>
+              ) : null}
             </CardContent>
           </Card>
         </Link>

@@ -68,6 +68,7 @@ export async function createExpenseFromRecurring({ recurringExpenseId }: { recur
   return createExpense({
     adjustmentEntries: [],
     amountCents: recurringExpense.amountCents,
+    budgetId: null,
     groupId: recurringExpense.groupId,
     note: `Created from ${formatRecurringFrequency(recurringExpense.frequency).toLowerCase()} recurring template.`,
     paidByMemberId: recurringExpense.paidByMemberId,

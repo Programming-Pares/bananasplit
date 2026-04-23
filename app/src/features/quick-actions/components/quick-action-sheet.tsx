@@ -59,6 +59,7 @@ export function QuickActionSheet({
   const [currentGroupId, setCurrentGroupId] = useState(selectedGroupId ?? '')
   const [amountInput, setAmountInput] = useState('')
   const [expenseTitle, setExpenseTitle] = useState('')
+  const [expenseBudgetId, setExpenseBudgetId] = useState<string | null>(null)
   const [expensePaidById, setExpensePaidById] = useState('')
   const [expenseParticipantIds, setExpenseParticipantIds] = useState<string[]>([])
   const [expenseAdjustments, setExpenseAdjustments] = useState<AdjustmentEntry[]>([])
@@ -79,6 +80,7 @@ export function QuickActionSheet({
   const effectiveGroupId = isGroupLocked ? (selectedGroupId ?? '') : currentGroupId
   const activeGroup = useGroupQuery(effectiveGroupId).data
   const selectableGroups = selectableGroupsQuery.data ?? []
+  const budgets = activeGroup?.budgets ?? []
   const members = activeGroup?.memberEntries
   const memberEntries = useMemo(() => members ?? [], [members])
   const memberNameMap = useMemo(
@@ -112,6 +114,7 @@ export function QuickActionSheet({
 
   const handleGroupChange = (nextGroupId: string) => {
     setCurrentGroupId(nextGroupId)
+    setExpenseBudgetId(null)
     setExpensePaidById('')
     setExpenseParticipantIds([])
     setExpenseAdjustments([])
@@ -174,8 +177,10 @@ export function QuickActionSheet({
               amountCents={amountCents}
               amountInput={amountInput}
               allSelected={allSelected}
+              budgets={budgets}
               effectiveGroupId={effectiveGroupId}
               expenseAdjustments={expenseAdjustments}
+              selectedBudgetId={expenseBudgetId}
               expensePaidById={expensePaidById}
               expenseParticipantIds={expenseParticipantIds}
               expenseTitle={expenseTitle}
@@ -201,6 +206,7 @@ export function QuickActionSheet({
               }}
               onGroupChange={handleGroupChange}
               onOpenAdjustment={() => setIsAdjustmentOpen(true)}
+              onBudgetChange={setExpenseBudgetId}
               onPaidByChange={setExpensePaidById}
               onParticipantChange={(next) =>
                 setExpenseParticipantIds((current) =>
@@ -251,6 +257,7 @@ export function QuickActionSheet({
                   memberId: item.memberId,
                 })),
                 amountCents,
+                budgetId: expenseBudgetId,
                 groupId: activeGroup.id,
                 note: null,
                 paidByMemberId: expensePaidById,

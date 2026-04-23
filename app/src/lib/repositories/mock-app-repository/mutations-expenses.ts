@@ -1,10 +1,18 @@
 import { appDb, type ExpenseRecord, type ExpenseShareRecord } from '@/lib/db/app-db'
-import { buildOutboxRecord, getDisplayMemberNameMap, getGroupMemberNameMap, getRequiredName } from '@/lib/repositories/mock-app-repository/core'
+import {
+  buildExpenseActivityMessage,
+  buildOutboxRecord,
+  getAcceptedGroupMembers,
+  getDisplayMemberNameMap,
+  getGroupMemberNameMap,
+  getRequiredName,
+} from '@/lib/repositories/mock-app-repository/core'
 import { computeShares, createExpenseActivity } from '@/lib/repositories/mock-app-repository/expense-helpers'
 
 export async function createExpense({
   adjustmentEntries,
   amountCents,
+  budgetId,
   groupId,
   note,
   paidByMemberId,
@@ -13,6 +21,7 @@ export async function createExpense({
 }: {
   adjustmentEntries: Array<{ amountCents: number; memberId: string }>
   amountCents: number
+  budgetId: string | null
   groupId: string
   note: string | null
   paidByMemberId: string
@@ -22,6 +31,12 @@ export async function createExpense({
   const group = await appDb.groups.get(groupId)
   if (!group || group.deletedAt !== null) {
     throw new Error('Group not found.')
+  }
+  if (budgetId) {
+    const budget = await appDb.budgets.get(budgetId)
+    if (!budget || budget.deletedAt !== null || budget.groupId !== groupId) {
+      throw new Error('Budget not found.')
+    }
   }
 
   const memberNameMap = await getDisplayMemberNameMap(groupId)
@@ -35,6 +50,7 @@ export async function createExpense({
   })
   const expense: ExpenseRecord = {
     amountCents,
+    budgetId,
     createdAt,
     deletedAt: null,
     groupId,
@@ -74,12 +90,14 @@ export async function createExpense({
 
 export async function updateExpense({
   amountCents,
+  budgetId,
   expenseId,
   paidByMemberId,
   participantMemberIds,
   title,
 }: {
   amountCents: number
+  budgetId: string | null
   expenseId: string
   paidByMemberId: string
   participantMemberIds: string[]
@@ -95,15 +113,41 @@ export async function updateExpense({
     throw new Error('Group not found.')
   }
 
+  const acceptedMembers = await getAcceptedGroupMembers(expense.groupId)
+  const acceptedMemberIds = new Set(acceptedMembers.map(({ member }) => member.id))
+  if (!acceptedMemberIds.has(paidByMemberId)) {
+    throw new Error('Expense payer not found.')
+  }
+
+  const uniqueParticipantMemberIds = [...new Set(participantMemberIds)]
+  if (uniqueParticipantMemberIds.length === 0) {
+    throw new Error('Select at least one participant.')
+  }
+  if (!uniqueParticipantMemberIds.every((memberId) => acceptedMemberIds.has(memberId))) {
+    throw new Error('One or more participants are no longer in this group.')
+  }
+
+  if (budgetId) {
+    const budget = await appDb.budgets.get(budgetId)
+    if (!budget || budget.deletedAt !== null || budget.groupId !== expense.groupId) {
+      throw new Error('Budget not found.')
+    }
+  }
+
   const existingShares = await appDb.expenseShares.where('expenseId').equals(expense.id).toArray()
   const preservedAdjustments = existingShares
-    .filter((share) => share.adjustmentCents > 0 && participantMemberIds.includes(share.memberId))
+    .filter((share) => share.adjustmentCents > 0 && uniqueParticipantMemberIds.includes(share.memberId))
     .map((share) => ({ amountCents: share.adjustmentCents, memberId: share.memberId }))
-  const shares = computeShares({ adjustmentEntries: preservedAdjustments, amountCents, memberIds: participantMemberIds })
+  const shares = computeShares({
+    adjustmentEntries: preservedAdjustments,
+    amountCents,
+    memberIds: uniqueParticipantMemberIds,
+  })
   const now = Date.now()
   const nextExpense: ExpenseRecord = {
     ...expense,
     amountCents,
+    budgetId,
     paidByMemberId,
     title: title.trim(),
     updatedAt: now,
@@ -126,10 +170,15 @@ export async function updateExpense({
     await appDb.expenseShares.bulkAdd(nextShareRecords)
 
     if (expenseActivity) {
+      const paidByName = getRequiredName(memberNameMap, paidByMemberId, 'Expense payer')
       await appDb.activity.put({
         ...expenseActivity,
         amountCents,
-        message: `${nextExpense.title} added. ${getRequiredName(memberNameMap, paidByMemberId, 'Expense payer')} paid for ${nextShareRecords.length} people.`,
+        message: buildExpenseActivityMessage({
+          paidByName,
+          participantCount: nextShareRecords.length,
+          title: nextExpense.title,
+        }),
       })
     }
 
@@ -143,7 +192,10 @@ export async function updateExpense({
     )
   })
 
-  return expense.id
+  return {
+    expenseId: expense.id,
+    groupId: expense.groupId,
+  }
 }
 
 export async function deleteExpense({ expenseId }: { expenseId: string }) {
@@ -165,4 +217,9 @@ export async function deleteExpense({ expenseId }: { expenseId: string }) {
       }),
     )
   })
+
+  return {
+    expenseId: expense.id,
+    groupId: expense.groupId,
+  }
 }

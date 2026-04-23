@@ -1,6 +1,8 @@
 export { getActivityData, getAllGroupsData, getDashboardData, getGroupsData, getNotificationsData, getSelectableGroupsData, searchApp } from '@/lib/repositories/mock-app-repository/reads-dashboard'
 export { getExpenseById, getGroupById, getSettingsData } from '@/lib/repositories/mock-app-repository/reads-details'
+export { createBudget, deleteBudget, updateBudget } from '@/lib/repositories/mock-app-repository/budgets'
 export { createGroup, addGroupMember } from '@/lib/repositories/mock-app-repository/mutations-groups'
+export { deleteGroup, updateGroup } from '@/lib/repositories/mock-app-repository/mutations-group-details'
 export { createExpense, deleteExpense, updateExpense } from '@/lib/repositories/mock-app-repository/mutations-expenses'
 export { removeGroupMember, renameGroupMember, updateInviteStatus } from '@/lib/repositories/mock-app-repository/mutations-members'
 export { createExpenseFromRecurring, createRecurringExpense, toggleRecurringExpensePaused } from '@/lib/repositories/mock-app-repository/mutations-recurring'

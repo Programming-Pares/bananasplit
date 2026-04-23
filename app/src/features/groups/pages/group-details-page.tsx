@@ -1,6 +1,6 @@
 import { Plus, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { useQuickActions } from '@/app/providers/quick-action-context'
 import { MobileShell } from '@/components/common/mobile-shell'
@@ -11,6 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GroupBalanceCard } from '@/features/groups/components/group-balance-card'
 import { GroupExpenseList } from '@/features/groups/components/group-expense-list'
 import { BalancesTab } from '@/features/groups/pages/group-details-page/balances-tab'
+import { BudgetFormDrawer } from '@/features/groups/pages/group-details-page/budget-form-drawer'
+import { BudgetsCard } from '@/features/groups/pages/group-details-page/budgets-card'
+import { DeleteGroupDrawer } from '@/features/groups/pages/group-details-page/delete-group-drawer'
 import { GroupMemberChipList } from '@/features/groups/pages/group-details-page/group-member-chip-list'
 import { GroupOptionsMenu } from '@/features/groups/pages/group-details-page/group-options-menu'
 import { MembersTab } from '@/features/groups/pages/group-details-page/members-tab'
@@ -19,8 +22,12 @@ import { RecurringExpensesCard } from '@/features/groups/pages/group-details-pag
 import { TimelineTab } from '@/features/groups/pages/group-details-page/timeline-tab'
 import {
   useCreateExpenseFromRecurringMutation,
+  useCreateBudgetMutation,
   useCreateRecurringExpenseMutation,
+  useDeleteBudgetMutation,
+  useDeleteGroupMutation,
   useGroupQuery,
+  useUpdateBudgetMutation,
   useSetGroupActiveStateMutation,
   useSetGroupDoneStateMutation,
   useToggleRecurringExpensePausedMutation,
@@ -44,8 +51,14 @@ function GroupDetailsPageContent({
   group: NonNullable<ReturnType<typeof useGroupQuery>['data']>
   groupId: string
 }) {
+  const navigate = useNavigate()
   const { openExpenseSheet, openSettlementSheet } = useQuickActions()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isBudgetOpen, setIsBudgetOpen] = useState(false)
+  const [budgetName, setBudgetName] = useState('')
+  const [budgetAmount, setBudgetAmount] = useState('')
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null)
   const [isRecurringOpen, setIsRecurringOpen] = useState(false)
   const [recurringTitle, setRecurringTitle] = useState('')
   const [recurringAmount, setRecurringAmount] = useState('')
@@ -57,6 +70,10 @@ function GroupDetailsPageContent({
   const createRecurringExpenseMutation = useCreateRecurringExpenseMutation()
   const toggleRecurringExpensePausedMutation = useToggleRecurringExpensePausedMutation()
   const createExpenseFromRecurringMutation = useCreateExpenseFromRecurringMutation()
+  const createBudgetMutation = useCreateBudgetMutation()
+  const updateBudgetMutation = useUpdateBudgetMutation()
+  const deleteBudgetMutation = useDeleteBudgetMutation()
+  const deleteGroupMutation = useDeleteGroupMutation()
 
   const canCreateRecurring =
     recurringTitle.trim().length > 0 &&
@@ -64,7 +81,21 @@ function GroupDetailsPageContent({
     recurringPaidById.length > 0 &&
     recurringParticipantIds.length > 0
   const menuActionPending =
-    setGroupActiveStateMutation.isPending || setGroupDoneStateMutation.isPending
+    setGroupActiveStateMutation.isPending ||
+    setGroupDoneStateMutation.isPending ||
+    deleteGroupMutation.isPending
+  const activeBudget = editingBudgetId
+    ? group.budgets.find((budget) => budget.id === editingBudgetId) ?? null
+    : null
+  const budgetMutationPending =
+    createBudgetMutation.isPending || updateBudgetMutation.isPending
+
+  const openCreateBudget = () => {
+    setEditingBudgetId(null)
+    setBudgetName('')
+    setBudgetAmount('')
+    setIsBudgetOpen(true)
+  }
 
   return (
     <MobileShell>
@@ -89,6 +120,10 @@ function GroupDetailsPageContent({
                 isActive: !group.isActive,
               })
               setIsMenuOpen(false)
+            }}
+            onDelete={async () => {
+              setIsMenuOpen(false)
+              setIsDeleteOpen(true)
             }}
             setIsOpen={setIsMenuOpen}
           />
@@ -142,6 +177,26 @@ function GroupDetailsPageContent({
           </TabsList>
 
           <TabsContent className="mt-2 space-y-3" value="expenses">
+            <BudgetsCard
+              canEdit={!group.isDone}
+              isDeletePending={deleteBudgetMutation.isPending}
+              items={group.budgets}
+              onCreate={openCreateBudget}
+              onDelete={async (budgetId) => {
+                await deleteBudgetMutation.mutateAsync({ budgetId })
+              }}
+              onEdit={(budgetId) => {
+                const budget = group.budgets.find((item) => item.id === budgetId)
+                if (!budget) {
+                  return
+                }
+
+                setEditingBudgetId(budget.id)
+                setBudgetName(budget.name)
+                setBudgetAmount(String(budget.amountCents / 100))
+                setIsBudgetOpen(true)
+              }}
+            />
             <RecurringExpensesCard
               canEdit={!group.isDone}
               isCreateNowPending={createExpenseFromRecurringMutation.isPending}
@@ -219,6 +274,46 @@ function GroupDetailsPageContent({
           setIsRecurringOpen(false)
         }}
         onTitleChange={setRecurringTitle}
+      />
+
+      <BudgetFormDrawer
+        amountInput={budgetAmount}
+        isPending={budgetMutationPending}
+        name={budgetName}
+        open={isBudgetOpen}
+        title={activeBudget ? 'Edit budget' : 'Add budget'}
+        onAmountChange={setBudgetAmount}
+        onClose={() => setIsBudgetOpen(false)}
+        onNameChange={setBudgetName}
+        onOpenChange={setIsBudgetOpen}
+        onSave={async () => {
+          if (editingBudgetId) {
+            await updateBudgetMutation.mutateAsync({
+              amountCents: Math.round(Number.parseFloat(budgetAmount) * 100),
+              budgetId: editingBudgetId,
+              name: budgetName,
+            })
+          } else {
+            await createBudgetMutation.mutateAsync({
+              amountCents: Math.round(Number.parseFloat(budgetAmount) * 100),
+              groupId,
+              name: budgetName,
+            })
+          }
+
+          setIsBudgetOpen(false)
+        }}
+      />
+
+      <DeleteGroupDrawer
+        groupName={group.name}
+        isPending={deleteGroupMutation.isPending}
+        open={isDeleteOpen}
+        onConfirm={async () => {
+          await deleteGroupMutation.mutateAsync({ groupId })
+          navigate('/groups')
+        }}
+        onOpenChange={setIsDeleteOpen}
       />
     </MobileShell>
   )
