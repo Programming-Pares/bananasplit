@@ -1,6 +1,6 @@
 # BananaSplit
 
-![Screenshot](/assets/initial_ui.png)
+![Screenshot](/assets/screenshot.png)
 
 BananaSplit is an offline-first web app for splitting group expenses, managing shared budgets, tracking balances, and recording settlements.
 

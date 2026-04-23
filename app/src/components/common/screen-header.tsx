@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { ArrowLeft, Ellipsis } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 
@@ -19,19 +19,33 @@ export function ScreenHeader({
   title,
   subtitle,
 }: ScreenHeaderProps) {
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBack = () => {
+    if (window.history.length > 1 && location.key !== "default") {
+      navigate(-1);
+      return;
+    }
+
+    if (backHref) {
+      navigate(backHref);
+    }
+  }
+
   return (
     <header className="mb-5 flex items-start justify-between gap-3 sm:mb-7 sm:gap-4">
       <div className="flex items-start gap-2.5 sm:gap-3">
         {backHref ? (
           <Button
-            asChild
             className="size-10 rounded-2xl"
             size="icon"
             variant="secondary"
+            onClick={handleBack}
           >
-            <Link to={backHref}>
-              <ArrowLeft className="size-4" />
-            </Link>
+            {/* Don't use Link here for "back" behavior. */}
+            <ArrowLeft className="size-4" />
           </Button>
         ) : null}
         <div className="space-y-1">
