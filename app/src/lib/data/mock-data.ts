@@ -65,7 +65,7 @@ export const mockAppData = {
       owed: 'P 950',
       owes: 'P 420',
     },
-    userName: 'Sebas',
+    userName: 'Guest',
   },
   expenses: {
     dinner: {
@@ -138,6 +138,6 @@ export const mockAppData = {
   },
   settings: {
     currency: 'PHP',
-    userName: 'Sebas',
+    userName: 'Guest',
   },
 }

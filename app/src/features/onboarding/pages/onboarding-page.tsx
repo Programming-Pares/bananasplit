@@ -42,7 +42,7 @@ export function OnboardingPage() {
               </label>
               <Input
                 className="h-12 rounded-2xl border-white/80 bg-white/80 shadow-none"
-                defaultValue="Sebas"
+                defaultValue="Guest"
                 id="name"
                 placeholder="Enter your name"
               />
