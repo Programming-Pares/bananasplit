@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CloudOff,
   Download,
@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Smartphone,
   Wallet,
+  Sun,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -51,6 +52,21 @@ function SettingsPageContent({
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [isResetOpen, setIsResetOpen] = useState(false)
   const [selectedCurrency, setSelectedCurrency] = useState(data.currency)
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') ?? 'light')
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+
+    localStorage.setItem('theme', theme)
+  }, [theme])
+  
+  const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
 
   const accountName =
     data.authProvider === 'google' && data.isSignedIn
@@ -202,7 +218,13 @@ function SettingsPageContent({
               value={data.currency}
             />
             <Separator />
-            <SettingsRow icon={MoonStar} label="Theme" showChevron={false} value="Banana" />
+           <SettingsRow
+            icon={theme === 'dark' ? Sun : MoonStar}
+            label="Theme"
+            onClick={toggleTheme}
+            showChevron={false}
+            value={theme === 'dark' ? 'Dark Banana' : 'White Banana'}
+          />
           </CardContent>
         </Card>
 
