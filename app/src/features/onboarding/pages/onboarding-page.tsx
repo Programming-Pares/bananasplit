@@ -94,7 +94,7 @@ export function OnboardingPage() {
                       BananaSplit
                     </h1>
                     <p className="text-lg font-medium text-muted-foreground/90 max-w-[280px] mx-auto">
-                      The simplest way to split stuff with your friends. No stress, just math.
+                      The simplest way to split expenses with your friends.
                     </p>
                   </div>
 
