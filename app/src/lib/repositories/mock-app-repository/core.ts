@@ -7,6 +7,18 @@ import {
   type SyncOutboxRecord,
 } from '@/lib/db/app-db'
 
+export function generateId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // Fallback for insecure contexts (HTTP/IP access on mobile)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  }) as `${string}-${string}-${string}-${string}-${string}`
+}
+
 export function formatCurrencyFromCents(amountCents: number) {
   return `₱${new Intl.NumberFormat('en-PH', {
     minimumFractionDigits: 2,
@@ -39,7 +51,7 @@ export function buildOutboxRecord({
     createdAt: Date.now(),
     entityId,
     entityType,
-    id: crypto.randomUUID(),
+    id: generateId(),
     operation,
     payload,
     retryCount: 0,
@@ -88,7 +100,7 @@ export function buildSystemActivity({
     amountCents: null,
     createdAt: Date.now(),
     groupId,
-    id: crypto.randomUUID(),
+    id: generateId(),
     message,
     readAt: null,
     relatedId,
@@ -135,7 +147,7 @@ export async function ensureAppInitialized() {
   }
 
   const now = Date.now()
-  const currentUserMemberId = crypto.randomUUID()
+  const currentUserMemberId = generateId()
   const localMember: MemberRecord = {
     createdAt: now,
     deletedAt: null,
@@ -151,9 +163,10 @@ export async function ensureAppInitialized() {
     authProvider: 'local',
     currency: 'PHP',
     currentUserMemberId,
-    deviceId: crypto.randomUUID(),
+    deviceId: generateId(),
     id: 'settings',
     isSignedIn: false,
+    isOnboarded: false,
     lastSyncCursor: null,
     updatedAt: now,
     userName: 'Guest',

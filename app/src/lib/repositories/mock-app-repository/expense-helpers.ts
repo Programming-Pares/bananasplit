@@ -1,6 +1,7 @@
 import {
   buildExpenseActivityMessage,
   buildSettlementActivityMessage,
+  generateId,
 } from '@/lib/repositories/mock-app-repository/core'
 
 export function computeShares({
@@ -52,7 +53,7 @@ export async function createExpenseActivity({
   participantCount: number
   title: string
 }) {
-  const expenseId = crypto.randomUUID()
+  const expenseId = generateId()
   const createdAt = Date.now()
 
   return {
@@ -60,7 +61,7 @@ export async function createExpenseActivity({
       amountCents,
       createdAt,
       groupId,
-      id: crypto.randomUUID(),
+      id: generateId(),
       message: buildExpenseActivityMessage({
         paidByName,
         participantCount,
@@ -86,7 +87,7 @@ export async function createSettlementActivity({
   paidByName: string
   receivedByName: string
 }) {
-  const settlementId = crypto.randomUUID()
+  const settlementId = generateId()
   const createdAt = Date.now()
 
   return {
@@ -94,7 +95,7 @@ export async function createSettlementActivity({
       amountCents,
       createdAt,
       groupId,
-      id: crypto.randomUUID(),
+      id: generateId(),
       message: buildSettlementActivityMessage({
         amountCents,
         paidByName,

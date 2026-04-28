@@ -123,6 +123,7 @@ export type AppSettingsRecord = {
   deviceId: string
   id: 'settings'
   isSignedIn: boolean
+  isOnboarded: boolean
   lastSyncCursor: string | null
   updatedAt: number
   userName: string
@@ -132,13 +133,13 @@ export type SyncOutboxRecord = {
   createdAt: number
   entityId: string
   entityType:
-    | 'group'
-    | 'budget'
-    | 'member'
-    | 'groupMember'
-    | 'expense'
-    | 'settlement'
-    | 'settings'
+  | 'group'
+  | 'budget'
+  | 'member'
+  | 'groupMember'
+  | 'expense'
+  | 'settlement'
+  | 'settings'
   id: string
   operation: 'create' | 'update' | 'delete'
   payload: string

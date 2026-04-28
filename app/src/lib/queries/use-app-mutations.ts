@@ -26,6 +26,7 @@ import {
   updateInviteStatus,
   updateBudget,
   updateProfile,
+  completeOnboarding,
 } from '@/lib/repositories/mock-app-repository'
 
 function useInvalidateAppData() {
@@ -321,6 +322,17 @@ export function useMarkAllNotificationsReadMutation() {
 
   return useMutation({
     mutationFn: markAllNotificationsRead,
+    onSuccess: async () => {
+      await invalidate()
+    },
+  })
+}
+
+export function useCompleteOnboardingMutation() {
+  const invalidate = useInvalidateAppData()
+
+  return useMutation({
+    mutationFn: completeOnboarding,
     onSuccess: async () => {
       await invalidate()
     },

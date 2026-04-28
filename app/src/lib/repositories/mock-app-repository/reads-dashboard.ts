@@ -79,6 +79,7 @@ export async function getDashboardData() {
     }),
     summaryByGroup,
     userName: settings.userName,
+    isOnboarded: settings.isOnboarded,
   }
 }
 

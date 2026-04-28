@@ -1,5 +1,5 @@
 import { appDb, type BudgetRecord } from '@/lib/db/app-db'
-import { buildOutboxRecord, formatCurrencyFromCents } from '@/lib/repositories/mock-app-repository/core'
+import { buildOutboxRecord, formatCurrencyFromCents, generateId } from '@/lib/repositories/mock-app-repository/core'
 
 function getBudgetScopeError() {
   return new Error('Budget not found.')
@@ -70,7 +70,7 @@ export async function createBudget({
     createdAt: now,
     deletedAt: null,
     groupId,
-    id: crypto.randomUUID(),
+    id: generateId(),
     name: name.trim(),
     syncStatus: 'local',
     updatedAt: now,

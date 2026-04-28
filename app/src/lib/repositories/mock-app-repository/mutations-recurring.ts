@@ -1,5 +1,5 @@
 import { appDb, type RecurringExpenseRecord } from '@/lib/db/app-db'
-import { buildOutboxRecord, buildSystemActivity, formatRecurringFrequency } from '@/lib/repositories/mock-app-repository/core'
+import { buildOutboxRecord, buildSystemActivity, formatRecurringFrequency, generateId } from '@/lib/repositories/mock-app-repository/core'
 import { createExpense } from '@/lib/repositories/mock-app-repository/mutations-expenses'
 
 export async function createRecurringExpense({
@@ -24,7 +24,7 @@ export async function createRecurringExpense({
     deletedAt: null,
     frequency,
     groupId,
-    id: crypto.randomUUID(),
+    id: generateId(),
     isPaused: false,
     paidByMemberId,
     participantMemberIdsJson: JSON.stringify(participantMemberIds),

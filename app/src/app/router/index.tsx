@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Outlet } from 'react-router-dom'
 
 import { ActivityPage } from '@/features/activity/pages/activity-page'
 import { DashboardPage } from '@/features/dashboard/pages/dashboard-page'
@@ -14,59 +14,69 @@ import { SearchPage } from '@/features/search/pages/search-page'
 import { ProfilePage } from '@/features/settings/pages/profile-page'
 import { SettingsPage } from '@/features/settings/pages/settings-page'
 import { NotFoundPage } from '@/pages/not-found-page'
+import { OnboardingGuard } from '@/components/auth/onboarding-guard'
 
 export const appRouter = createBrowserRouter([
-  {
-    path: '/',
-    element: <DashboardPage />,
-  },
   {
     path: '/onboarding',
     element: <OnboardingPage />,
   },
   {
-    path: '/notifications',
-    element: <NotificationsPage />,
-  },
-  {
-    path: '/groups',
-    element: <GroupsPage />,
-  },
-  {
-    path: '/groups/new',
-    element: <CreateGroupPage />,
-  },
-  {
-    path: '/groups/:groupId/members/new',
-    element: <AddMemberPage />,
-  },
-  {
-    path: '/groups/:groupId/edit',
-    element: <EditGroupPage />,
-  },
-  {
-    path: '/groups/:groupId',
-    element: <GroupDetailsPage />,
-  },
-  {
-    path: '/activity',
-    element: <ActivityPage />,
-  },
-  {
-    path: '/expenses/:expenseId',
-    element: <ExpenseDetailsPage />,
-  },
-  {
-    path: '/settings',
-    element: <SettingsPage />,
-  },
-  {
-    path: '/profile',
-    element: <ProfilePage />,
-  },
-  {
-    path: '/search',
-    element: <SearchPage />,
+    element: (
+      <OnboardingGuard>
+        <Outlet />
+      </OnboardingGuard>
+    ),
+    children: [
+      {
+        path: '/',
+        element: <DashboardPage />,
+      },
+      {
+        path: '/notifications',
+        element: <NotificationsPage />,
+      },
+      {
+        path: '/groups',
+        element: <GroupsPage />,
+      },
+      {
+        path: '/groups/new',
+        element: <CreateGroupPage />,
+      },
+      {
+        path: '/groups/:groupId/members/new',
+        element: <AddMemberPage />,
+      },
+      {
+        path: '/groups/:groupId/edit',
+        element: <EditGroupPage />,
+      },
+      {
+        path: '/groups/:groupId',
+        element: <GroupDetailsPage />,
+      },
+      {
+        path: '/activity',
+        element: <ActivityPage />,
+      },
+      {
+        path: '/expenses/:expenseId',
+        element: <ExpenseDetailsPage />,
+      },
+      {
+        path: '/settings',
+        element: <SettingsPage />,
+      },
+      {
+        path: '/profile',
+        element: <ProfilePage />,
+      },
+      {
+        path: '/search',
+        element: <SearchPage />,
+      },
+    ],
   },
   {
     path: '*',

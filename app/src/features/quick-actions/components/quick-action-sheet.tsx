@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 
+import { generateId } from '@/lib/repositories/mock-app-repository/core'
 import {
   Drawer,
   DrawerContent,
@@ -198,7 +199,7 @@ export function QuickActionSheet({
                   ...current,
                   {
                     amountCents: parseAmountToCents(adjustmentAmountInput),
-                    id: crypto.randomUUID(),
+                    id: generateId(),
                     memberId: adjustmentMemberId,
                   },
                 ])

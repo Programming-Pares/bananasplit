@@ -81,6 +81,56 @@ export async function updateProfile({
   })
 }
 
+export async function completeOnboarding({
+  currency,
+  userName,
+}: {
+  currency: string
+  userName: string
+}) {
+  const settings = await getSettingsRecord()
+  const nextUserName = userName.trim()
+  const nextCurrency = currency.trim().toUpperCase()
+
+  if (nextUserName.length === 0) {
+    throw new Error('User name is required.')
+  }
+  if (nextCurrency.length === 0) {
+    throw new Error('Currency is required.')
+  }
+
+  const nextSettings = {
+    ...settings,
+    currency: nextCurrency,
+    isOnboarded: true,
+    updatedAt: Date.now(),
+    userName: nextUserName,
+  }
+
+  await appDb.transaction('rw', [appDb.members, appDb.settings, appDb.syncOutbox], async () => {
+    const currentUser = await appDb.members.get(settings.currentUserMemberId)
+    if (currentUser) {
+      await appDb.members.put({
+        ...currentUser,
+        name: nextUserName,
+        updatedAt: nextSettings.updatedAt,
+      })
+    }
+
+    await appDb.settings.put(nextSettings)
+    await appDb.syncOutbox.add(
+      buildOutboxRecord({
+        entityId: nextSettings.id,
+        entityType: 'settings',
+        operation: 'update',
+        payload: JSON.stringify(nextSettings),
+      }),
+    )
+  })
+
+  return nextSettings
+}
+
 export async function resetLocalData() {
   await appDb.transaction('rw', [appDb.activity, appDb.budgets, appDb.expenseShares, appDb.expenses, appDb.groupMembers, appDb.groups, appDb.members, appDb.settings, appDb.settlements, appDb.syncOutbox], async () => {
     await Promise.all([

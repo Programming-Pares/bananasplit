@@ -7,4 +7,4 @@ export { createExpense, deleteExpense, updateExpense } from '@/lib/repositories/
 export { removeGroupMember, renameGroupMember, updateInviteStatus } from '@/lib/repositories/mock-app-repository/mutations-members'
 export { createExpenseFromRecurring, createRecurringExpense, toggleRecurringExpensePaused } from '@/lib/repositories/mock-app-repository/mutations-recurring'
 export { createSettlement, markAllNotificationsRead, markNotificationRead } from '@/lib/repositories/mock-app-repository/mutations-settlements-notifs'
-export { resetLocalData, setGroupActiveState, setGroupDoneState, updateAuthState, updateCurrency, updateProfile } from '@/lib/repositories/mock-app-repository/mutations-settings'
+export { resetLocalData, setGroupActiveState, setGroupDoneState, updateAuthState, updateCurrency, updateProfile, completeOnboarding } from '@/lib/repositories/mock-app-repository/mutations-settings'

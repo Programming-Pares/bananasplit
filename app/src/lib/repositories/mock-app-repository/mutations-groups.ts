@@ -9,6 +9,7 @@ import {
 import {
   buildOutboxRecord,
   buildSystemActivity,
+  generateId,
   getSettingsRecord,
 } from '@/lib/repositories/mock-app-repository/core'
 
@@ -21,7 +22,7 @@ export async function createGroup({
 }) {
   const settings = await getSettingsRecord()
   const now = Date.now()
-  const groupId = crypto.randomUUID()
+  const groupId = generateId()
   const group: GroupRecord = {
     createdAt: now,
     deletedAt: null,
@@ -37,7 +38,7 @@ export async function createGroup({
     createdAt: now,
     deletedAt: null,
     groupId,
-    id: crypto.randomUUID(),
+    id: generateId(),
     inviteStatus: 'accepted',
     joinedAt: now,
     memberId: settings.currentUserMemberId,
@@ -86,7 +87,7 @@ export async function addGroupMember({
       createdAt: now,
       deletedAt: null,
       email: normalizedEmail,
-      id: crypto.randomUUID(),
+      id: generateId(),
       name,
       source,
       syncStatus: 'local',
@@ -96,7 +97,7 @@ export async function addGroupMember({
     createdAt: now,
     deletedAt: null,
     groupId,
-    id: crypto.randomUUID(),
+    id: generateId(),
     inviteStatus,
     joinedAt: now,
     memberId: member.id,
